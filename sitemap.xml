@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://austinzehnder.com/</loc></url>
-  <url><loc>https://austinzehnder.com/zehndra.html</loc></url>
-  <url><loc>https://austinzehnder.com/writing/how-to-underwrite-a-rental-deal.html</loc></url>
+  <url><loc>https://austinzehnder.com/</loc><lastmod>2026-10-30</lastmod></url>
+  <url><loc>https://austinzehnder.com/zehndra.html</loc><lastmod>2026-10-30</lastmod></url>
+  <url><loc>https://austinzehnder.com/writing/</loc><lastmod>2026-10-30</lastmod></url>
+  <url><loc>https://austinzehnder.com/writing/how-to-underwrite-a-rental-deal.html</loc><lastmod>2026-10-30</lastmod></url>
+  <url><loc>https://austinzehnder.com/writing/mortgage-rate-monthly-payment.html</loc><lastmod>2026-10-30</lastmod></url>
+  <url><loc>https://austinzehnder.com/writing/rent-vs-buy-numbers-that-matter.html</loc><lastmod>2026-10-30</lastmod></url>
+  <url><loc>https://austinzehnder.com/writing/portfolio-dashboard-you-will-check.html</loc><lastmod>2026-10-30</lastmod></url>
+  <url><loc>https://austinzehnder.com/writing/san-francisco-housing-affordability-one-chart.html</loc><lastmod>2026-10-30</lastmod></url>
 </urlset>
