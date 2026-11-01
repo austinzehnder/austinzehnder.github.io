@@ -529,6 +529,7 @@ var STORE_SECTIONS = ["Produce", "Meat & Seafood", "Dairy & Eggs", "Bakery & Bre
 function sectionForItem(item) {
   var s = String(item).toLowerCase();
   if (/\bfrozen\b/.test(s)) return "Frozen";
+  if (/\b(crushed tomatoes|tomato paste|diced tomatoes|sun-dried tomatoes)\b/.test(s)) return "Pantry";
   if (/\b(salmon|fish|shrimp|prawn|chicken|beef|pork|steak|sausage|bacon|meat|impossible)\b/.test(s)) return "Meat & Seafood";
   if (/\b(milk|cheese|butter|cream|yogurt|yoghurt|egg|paneer|cotija|parmesan|mozzarella|cheddar|feta)\b/.test(s)) return "Dairy & Eggs";
   if (/\b(bread|naan|tortilla|bun|buns|roll|rolls|baguette|pita)\b/.test(s)) return "Bakery & Bread";
