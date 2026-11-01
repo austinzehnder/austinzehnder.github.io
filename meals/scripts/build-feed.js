@@ -41,6 +41,18 @@ async function main() {
   const key = process.env.SUPABASE_ANON_KEY;
   if (!url || !key) throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY must be set');
   const names = recipeNames();
+  // Merge user-added recipes from the shared table (ids like "custom-..."),
+  // so their dinners get feed events too. A failed recipes fetch must not
+  // break the feed — built-in names still work on their own.
+  try {
+    const rres = await fetch(url + '/rest/v1/recipes?select=id,name', {
+      headers: { apikey: key, Authorization: 'Bearer ' + key }
+    });
+    if (rres.ok) {
+      const rrows = await rres.json();
+      (rrows || []).forEach((row) => { names[String(row.id)] = row.name; });
+    }
+  } catch (e) { /* keep built-ins only */ }
   const res = await fetch(url + '/rest/v1/weeks?select=week_start,state&order=week_start.asc', {
     headers: { apikey: key, Authorization: 'Bearer ' + key }
   });

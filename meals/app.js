@@ -183,7 +183,7 @@ async function renderWeekNav() {
 /* ---------------- helpers ---------------- */
 
 function $(id) { return document.getElementById(id); }
-function recipeById(id) { return RECIPES.filter(function (r) { return r.id === id; })[0]; }
+function recipeById(id) { return RECIPES.filter(function (r) { return String(r.id) === String(id); })[0]; }
 function assignmentLabel(a) {
   if (!a) return null;
   if (a.kind === "recipe") { var r = recipeById(a.id); return r ? r.name : null; }
@@ -246,7 +246,7 @@ function renderRecipes() {
       + '</div></div>';
   }).join("");
   grid.querySelectorAll(".card").forEach(function (el) {
-    el.addEventListener("click", function () { openRecipe(parseInt(el.getAttribute("data-id"), 10)); });
+    el.addEventListener("click", function () { openRecipe(el.getAttribute("data-id")); });
   });
 }
 
@@ -301,36 +301,49 @@ var mealPickerDay = null;
 function showMealPicker(day) {
   mealPickerDay = day;
   $("mealPickerTitle").textContent = "Pick dinner for " + day;
-  var rows = RECIPES.map(function (r) {
-    return '<button data-recipe="' + r.id + '"><img src="' + r.img + '" alt="" onerror="this.style.display=\'none\'">'
-      + '<span>' + esc(r.name) + '<br><small>' + esc(r.cuisineLabel) + ' · ' + esc(r.timeLabel) + '</small></span></button>';
-  }).join("");
-  rows += '<button data-special="leftovers"><img src="' + SPECIALS.leftovers.img + '" alt="" onerror="this.style.display=\'none\'">'
-    + '<span>Leftovers<br><small>Night off cooking</small></span></button>';
-  rows += '<button data-special="eating-out"><img src="' + SPECIALS["eating-out"].img + '" alt="" onerror="this.style.display=\'none\'">'
-    + '<span>Eating Out<br><small>Night out</small></span></button>';
-  $("mealPickerList").innerHTML = rows;
-  $("mealPickerList").querySelectorAll("button").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      var day = mealPickerDay;
-      var assignment, label;
-      if (btn.hasAttribute("data-recipe")) {
-        var r = recipeById(parseInt(btn.getAttribute("data-recipe"), 10));
-        assignment = { kind: "recipe", id: r.id };
-        label = r.name;
-      } else {
-        var special = btn.getAttribute("data-special");
-        assignment = { kind: "special", special: special };
-        label = SPECIALS[special].name;
-      }
-      weekState.assignments[day] = assignment;
-      saveWeek();
-      renderPlanner();
-      renderGrocery();
-      closeMealPicker();
-      toast(label + " set for " + day);
+  var search = $("mealPickerSearch");
+  search.value = "";
+  var renderList = function () {
+    var q = search.value.trim().toLowerCase();
+    var sorted = RECIPES.slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+    var list = sorted.filter(function (r) {
+      if (!q) return true;
+      return r.name.toLowerCase().indexOf(q) !== -1
+        || r.ingredients.join(" ").toLowerCase().indexOf(q) !== -1;
     });
-  });
+    var rows = list.map(function (r) {
+      return '<button data-recipe="' + r.id + '"><img src="' + r.img + '" alt="" onerror="this.style.display=\'none\'">'
+        + '<span>' + esc(r.name) + '<br><small>' + esc(r.cuisineLabel) + ' · ' + esc(r.timeLabel) + '</small></span></button>';
+    }).join("");
+    rows += '<button data-special="leftovers"><img src="' + SPECIALS.leftovers.img + '" alt="" onerror="this.style.display=\'none\'">'
+      + '<span>Leftovers<br><small>Night off cooking</small></span></button>';
+    rows += '<button data-special="eating-out"><img src="' + SPECIALS["eating-out"].img + '" alt="" onerror="this.style.display=\'none\'">'
+      + '<span>Eating Out<br><small>Night out</small></span></button>';
+    $("mealPickerList").innerHTML = rows;
+    $("mealPickerList").querySelectorAll("button").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var day = mealPickerDay;
+        var assignment, label;
+        if (btn.hasAttribute("data-recipe")) {
+          var r = recipeById(btn.getAttribute("data-recipe"));
+          assignment = { kind: "recipe", id: r.id };
+          label = r.name;
+        } else {
+          var special = btn.getAttribute("data-special");
+          assignment = { kind: "special", special: special };
+          label = SPECIALS[special].name;
+        }
+        weekState.assignments[day] = assignment;
+        saveWeek();
+        renderPlanner();
+        renderGrocery();
+        closeMealPicker();
+        toast(label + " set for " + day);
+      });
+    });
+  };
+  search.oninput = renderList;
+  renderList();
   $("mealPickerModal").classList.add("open");
 }
 
@@ -816,6 +829,10 @@ $("downloadIcsBtn").addEventListener("click", downloadIcs);
 
 (async function () {
   await loadWeek();
+  try {
+    var custom = await WeekSync.loadCustomRecipes();
+    if (custom && custom.length) RECIPES = RECIPES.concat(custom);
+  } catch (e) {}
   renderRecipes();
   await renderWeekNav();
   renderPlanner();

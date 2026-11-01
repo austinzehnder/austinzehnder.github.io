@@ -128,7 +128,28 @@
     });
   }
 
-  /* ---------- adapter interface ---------- */
+  function loadCustomRecipes() {
+    var url = SUPABASE_URL + '/rest/v1/recipes?select=id,name,cuisine,cuisine_label,time_min,time_label,effort,img,ingredients,steps&order=name.asc';
+    return fetchWithTimeout(url, { headers: headers() }, 8000).then(function (r) {
+      if (!r.ok) throw new Error('recipes ' + r.status);
+      return r.json();
+    }).then(function (rows) {
+      return (rows || []).map(function (row) {
+        return {
+          id: row.id,
+          name: row.name,
+          cuisine: row.cuisine,
+          cuisineLabel: row.cuisine_label || row.cuisine,
+          timeMin: row.time_min,
+          timeLabel: row.time_label,
+          effort: row.effort,
+          img: row.img || '',
+          ingredients: Array.isArray(row.ingredients) ? row.ingredients : [],
+          steps: Array.isArray(row.steps) ? row.steps : []
+        };
+      });
+    });
+  }
 
   function saveWeek(weekStart, state) {
     if (state === undefined && weekStart && typeof weekStart === 'object') {
@@ -181,6 +202,7 @@
 
   window.WeekSync = {
     saveWeek: saveWeek, loadWeek: loadWeek, listWeeks: listWeeks,
+    loadCustomRecipes: loadCustomRecipes,
     getCalendarFeedUrl: getCalendarFeedUrl, setCalendarFeedUrl: setCalendarFeedUrl
   };
 })();
