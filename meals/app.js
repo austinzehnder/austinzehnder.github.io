@@ -316,6 +316,17 @@ function showMealPicker(day) {
       if (r.name.toLowerCase().indexOf(q) !== -1) return true;
       return q.length >= 3 && r.ingredients.join(" ").toLowerCase().indexOf(q) !== -1;
     });
+    /* Name matches always rank first, so the dish you're typing stays on
+       top even when a 3+ letter query also matches an ingredient (e.g.
+       "sal" matching salt in other recipes). */
+    if (q) {
+      list.sort(function (a, b) {
+        var am = a.name.toLowerCase().indexOf(q) !== -1;
+        var bm = b.name.toLowerCase().indexOf(q) !== -1;
+        if (am !== bm) return am ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      });
+    }
     var rows = list.map(function (r) {
       return '<button data-recipe="' + r.id + '"><img src="' + r.img + '" alt="" onerror="this.style.display=\'none\'">'
         + '<span>' + esc(r.name) + '<br><small>' + esc(r.cuisineLabel) + ' · ' + esc(r.timeLabel) + '</small></span></button>';
