@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What's cookin', good lookin'?</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>What's cookin', good lookin'?</h1>
+  <p>26 shared dinners, one week at a time. Pick the week together, shop once.</p>
+</header>
+
+<nav>
+  <button data-view="recipes" class="active">Recipes</button>
+  <button data-view="planner">Week Planner</button>
+  <button data-view="grocery">Grocery List</button>
+  <button data-view="calendar">Calendar</button>
+</nav>
+
+<main>
+  <!-- RECIPES -->
+  <section id="view-recipes" class="view active">
+    <div class="filters">
+      <input id="search" type="search" placeholder="Search recipes or ingredients…">
+      <select id="cuisineFilter">
+        <option value="">All cuisines</option>
+        <option>Japanese</option>
+        <option>Chinese</option>
+        <option>Thai</option>
+        <option>Korean</option>
+        <option>Indian</option>
+        <option>Mexican</option>
+        <option>Italian</option>
+        <option>American</option>
+      </select>
+      <select id="timeFilter">
+        <option value="">Any cook time</option>
+        <option value="25">25 min or less</option>
+        <option value="30">30–35 min</option>
+        <option value="40">40–45 min</option>
+        <option value="50">50+ min</option>
+      </select>
+      <select id="sortSelect">
+        <option value="cuisine">Sort: Cuisine</option>
+        <option value="az">Sort: Alphabetical A–Z</option>
+        <option value="time">Sort: Time to cook</option>
+        <option value="effort">Sort: Effort</option>
+      </select>
+    </div>
+    <div id="recipeGrid" class="grid"></div>
+    <p id="noResults" class="empty-state" style="display:none">No recipes match those filters.</p>
+  </section>
+
+  <!-- PLANNER -->
+  <section id="view-planner" class="view">
+    <div class="btn-row">
+      <button id="prevWeekBtn" class="btn secondary">◀ Previous week</button>
+      <span id="weekLabel" style="align-self:center;font-weight:600"></span>
+      <button id="nextWeekBtn" class="btn secondary">Next week ▶</button>
+      <select id="pastWeeksSelect" title="Jump to a saved week"></select>
+      <label style="align-self:center;color:var(--muted)">Jump to a date: <input type="date" id="weekJumpDate" title="Pick any date to jump to its week"></label>
+    </div>
+    <div class="btn-row">
+      <button id="randomizeBtn" class="btn">🎲 Randomize week</button>
+      <button id="copyWeekImageBtn" class="btn secondary">📋 Copy week image</button>
+      <button id="clearWeekBtn" class="btn secondary">Clear week</button>
+    </div>
+    <p class="empty-state" id="plannerHint">Tap a recipe, then "Add to week" — or randomize for 5 dinners, 1 leftovers night, and 1 night out.</p>
+    <div id="plannerGrid" class="planner-grid"></div>
+  </section>
+
+  <!-- GROCERY -->
+  <section id="view-grocery" class="view">
+    <div class="btn-row">
+      <button id="copyListBtn" class="btn">Copy list</button>
+      <button id="textListBtn" class="btn secondary">Text the list</button>
+      <button id="shareNotesBtn" class="btn secondary">Share to Notes</button>
+    </div>
+    <p class="empty-state" id="groceryEmpty">No dinners planned yet — add some to the week and the list builds itself.</p>
+    <div id="groceryCombined"></div>
+    <div id="groceryBreakdown" class="breakdown"></div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section id="view-calendar" class="view">
+    <p><strong>Privacy note:</strong> anyone with the feed link can see the meal plan, just like anyone with the shared page link. Only share it with people you want seeing your dinners.</p>
+
+    <h2>Subscribe to the meal calendar</h2>
+    <p>The live feed includes every planned week — dinners, leftovers nights, and nights out — as evening events. When either of you changes the plan, the feed updates.</p>
+    <div id="feedConnected" style="display:none">
+      <p>Paste this link into your calendar app:</p>
+      <div class="btn-row">
+        <input id="feedUrlInput" type="text" readonly style="flex:1 1 300px">
+        <button id="copyFeedUrlBtn" class="btn secondary">Copy link</button>
+      </div>
+      <h3>Apple Calendar</h3>
+      <ol>
+        <li>On iPhone: open Settings → Calendar → Accounts → Add Account → Other → Add Subscribed Calendar.</li>
+        <li>Paste the feed link, tap Next, then Save.</li>
+        <li>On Mac: open Calendar → File → New Calendar Subscription, paste the link, then Subscribe.</li>
+      </ol>
+      <h3>Google Calendar</h3>
+      <ol>
+        <li>On a computer, open Google Calendar → Settings (gear icon) → Add calendar → From URL.</li>
+        <li>Paste the feed link and click Add calendar.</li>
+      </ol>
+    </div>
+    <div id="feedNotConnected">
+      <p class="empty-state">The live feed isn't connected yet — it activates when the shared backend is wired up. Until then, the .ics download below works right now as a one-week fallback.</p>
+    </div>
+
+    <h2>Download this week's meals</h2>
+    <p id="calendarWeekLabel"></p>
+    <div id="calendarEventPreview"></div>
+    <div class="btn-row">
+      <button id="downloadIcsBtn" class="btn">Download .ics for this week</button>
+    </div>
+  </section>
+</main>
+
+<!-- Recipe detail modal -->
+<div id="recipeModal" class="modal-backdrop">
+  <div class="modal">
+    <img id="modalImg" alt="">
+    <div class="modal-body">
+      <h2 id="modalName"></h2>
+      <div class="meta" id="modalMeta"></div>
+      <h4>Ingredients (serves 2)</h4>
+      <ul id="modalIngredients"></ul>
+      <h4>Steps</h4>
+      <ol id="modalSteps"></ol>
+      <div class="btn-row" style="margin: 20px 0 0">
+        <button id="addToWeekBtn" class="btn">Add to week</button>
+        <button id="closeModalBtn" class="btn secondary">Close</button>
+      </div>
+      <div id="dayPicker" class="day-picker" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="sync.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
