@@ -136,7 +136,7 @@ var weekState = { assignments: {}, checked: [] };
 function defaultState() {
   var a = {};
   DAYS.forEach(function (d) { a[d] = null; });
-  return { assignments: a, checked: [] };
+  return { assignments: a, checked: [], extras: [] };
 }
 
 function saveWeek() {
@@ -151,6 +151,7 @@ async function loadWeek(weekStart) {
   if (saved && saved.assignments) {
     weekState = saved;
     if (!Array.isArray(weekState.checked)) weekState.checked = [];
+    if (!Array.isArray(weekState.extras)) weekState.extras = [];
     DAYS.forEach(function (d) { if (!(d in weekState.assignments)) weekState.assignments[d] = null; });
   } else {
     weekState = defaultState();
@@ -517,16 +518,58 @@ function plannedRecipes() {
   return out;
 }
 
+/* ---------------- grocery: store sections ---------------- */
+
+/* Store sections in the order you'd walk them, and a keyword classifier
+   that guesses where a shoppable item lives. Best-effort: free-text
+   ingredients are ambiguous (canned vs fresh corn, etc.), and anything
+   the classifier misses lands in Other. */
+var STORE_SECTIONS = ["Produce", "Meat & Seafood", "Dairy & Eggs", "Bakery & Bread", "Pantry", "Frozen", "Other"];
+
+function sectionForItem(item) {
+  var s = String(item).toLowerCase();
+  if (/\bfrozen\b/.test(s)) return "Frozen";
+  if (/\b(salmon|fish|shrimp|prawn|chicken|beef|pork|steak|sausage|bacon|meat|impossible)\b/.test(s)) return "Meat & Seafood";
+  if (/\b(milk|cheese|butter|cream|yogurt|yoghurt|egg|paneer|cotija|parmesan|mozzarella|cheddar|feta)\b/.test(s)) return "Dairy & Eggs";
+  if (/\b(bread|naan|tortilla|bun|buns|roll|rolls|baguette|pita)\b/.test(s)) return "Bakery & Bread";
+  if (/\b(spinach|broccoli|kale|avocado|cucumber|tomato|onion|garlic|ginger|lemon|lime|carrot|potato|asparagus|zucchini|green beans|corn|mushroom|basil|cilantro|parsley|lettuce|greens|tofu|apple|banana|mango|herb)\b/.test(s)) return "Produce";
+  if (/\b(rice|pasta|noodle|udon|ramen|gnocchi|couscous|polenta|flour|oil|sauce|soy|miso|vinegar|spice|cumin|paprika|chili|peppercorn|curry|paste|sugar|salt|honey|peanut|cashew|almond|sesame|stock|broth|tamarind|gochujang|doubanjiang)\b/.test(s)) return "Pantry";
+  return "Other";
+}
+
+/* One grouped view of the week's shopping: recipe items (combined) plus
+   the user's own added items, bucketed by store section. */
+function groupedGroceryItems() {
+  var groups = {};
+  STORE_SECTIONS.forEach(function (s) { groups[s] = []; });
+  combinedGrocery().forEach(function (g) {
+    groups[sectionForItem(g.key)].push({ label: g.label, key: g.key, extra: false, name: null });
+  });
+  var extras = Array.isArray(weekState.extras) ? weekState.extras : [];
+  extras.forEach(function (ex) {
+    var sec = (ex.section && STORE_SECTIONS.indexOf(ex.section) !== -1) ? ex.section : sectionForItem(ex.name);
+    groups[sec].push({ label: ex.name, key: "extra:" + ex.name.toLowerCase(), extra: true, name: ex.name });
+  });
+  return STORE_SECTIONS.map(function (sec) {
+    return { section: sec, items: groups[sec] };
+  }).filter(function (g) { return g.items.length; });
+}
+
 function renderGrocery() {
-  var combined = combinedGrocery();
   var recipes = plannedRecipes();
-  $("groceryEmpty").style.display = recipes.length ? "none" : "block";
+  var extras = Array.isArray(weekState.extras) ? weekState.extras : [];
+  $("groceryEmpty").style.display = (recipes.length || extras.length) ? "none" : "block";
+  var groups = groupedGroceryItems();
   var box = $("groceryCombined");
-  box.innerHTML = combined.map(function (g) {
-    var checked = weekState.checked.indexOf(g.key) !== -1;
-    return '<div class="grocery-item' + (checked ? " checked" : "") + '">'
-      + '<label>' + esc(g.label) + '</label>'
-      + '<input type="checkbox" data-key="' + esc(g.key) + '"' + (checked ? " checked" : "") + '></div>';
+  box.innerHTML = groups.map(function (g) {
+    var items = g.items.map(function (it) {
+      var checked = weekState.checked.indexOf(it.key) !== -1;
+      return '<div class="grocery-item' + (checked ? " checked" : "") + '">'
+        + '<label>' + esc(it.label) + '</label>'
+        + (it.extra ? '<button class="btn danger small" data-remove-extra="' + esc(it.name) + '">×</button>' : "")
+        + '<input type="checkbox" data-key="' + esc(it.key) + '"' + (checked ? " checked" : "") + '></div>';
+    }).join("");
+    return '<h3 class="grocery-section">' + esc(g.section) + '</h3>' + items;
   }).join("");
   box.querySelectorAll("input[type=checkbox]").forEach(function (cb) {
     cb.addEventListener("change", function () {
@@ -538,6 +581,16 @@ function renderGrocery() {
       cb.closest(".grocery-item").classList.toggle("checked", cb.checked);
     });
   });
+  box.querySelectorAll("[data-remove-extra]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var name = btn.getAttribute("data-remove-extra");
+      weekState.extras = (weekState.extras || []).filter(function (ex) { return ex.name !== name; });
+      var kidx = weekState.checked.indexOf("extra:" + name.toLowerCase());
+      if (kidx !== -1) weekState.checked.splice(kidx, 1);
+      saveWeek();
+      renderGrocery();
+    });
+  });
   var bd = $("groceryBreakdown");
   if (!recipes.length) { bd.innerHTML = ""; return; }
   bd.innerHTML = "<h2>What each recipe needs</h2>" + recipes.map(function (r) {
@@ -546,12 +599,16 @@ function renderGrocery() {
   }).join("");
 }
 
-/* Exports: ONLY unchecked shopping items — no meal names, no breakdown. */
+/* Exports: ONLY unchecked shopping items, grouped by store section —
+   no meal names, no per-recipe breakdown. */
 function exportText() {
-  var combined = combinedGrocery();
-  var lines = combined
-    .filter(function (g) { return weekState.checked.indexOf(g.key) === -1; })
-    .map(function (g) { return g.label; });
+  var lines = [];
+  groupedGroceryItems().forEach(function (g) {
+    var items = g.items.filter(function (it) { return weekState.checked.indexOf(it.key) === -1; });
+    if (!items.length) return;
+    lines.push(g.section);
+    items.forEach(function (it) { lines.push(it.label); });
+  });
   return lines.join("\n");
 }
 
@@ -814,6 +871,22 @@ $("copyWeekImageBtn").addEventListener("click", copyWeekImage);
 $("copyListBtn").addEventListener("click", function () {
   copyTextToClipboard(exportText(), "List copied — paste it into Notes");
 });
+function addExtraItem() {
+  var input = $("extraItemInput");
+  var name = input.value.trim();
+  if (!name) return;
+  if (!Array.isArray(weekState.extras)) weekState.extras = [];
+  var exists = weekState.extras.some(function (ex) { return ex.name.toLowerCase() === name.toLowerCase(); });
+  if (exists) { toast("Already on the list"); return; }
+  var picked = $("extraSectionSelect").value;
+  weekState.extras.push({ name: name, section: picked === "Auto" ? sectionForItem(name) : picked });
+  input.value = "";
+  saveWeek();
+  renderGrocery();
+  toast(name + " added to the list");
+}
+$("addExtraBtn").addEventListener("click", addExtraItem);
+$("extraItemInput").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); addExtraItem(); } });
 $("textListBtn").addEventListener("click", function () {
   shareText(exportText(), "List copied — paste it into a text");
 });
