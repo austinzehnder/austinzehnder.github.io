@@ -294,6 +294,51 @@ function showDayPicker() {
   });
 }
 
+/* ---------------- planner: add / change from the planner tab ---------------- */
+
+var mealPickerDay = null;
+
+function showMealPicker(day) {
+  mealPickerDay = day;
+  $("mealPickerTitle").textContent = "Pick dinner for " + day;
+  var rows = RECIPES.map(function (r) {
+    return '<button data-recipe="' + r.id + '"><img src="' + r.img + '" alt="" onerror="this.style.display=\'none\'">'
+      + '<span>' + esc(r.name) + '<br><small>' + esc(r.cuisineLabel) + ' · ' + esc(r.timeLabel) + '</small></span></button>';
+  }).join("");
+  rows += '<button data-special="leftovers"><img src="' + SPECIALS.leftovers.img + '" alt="" onerror="this.style.display=\'none\'">'
+    + '<span>Leftovers<br><small>Night off cooking</small></span></button>';
+  rows += '<button data-special="eating-out"><img src="' + SPECIALS["eating-out"].img + '" alt="" onerror="this.style.display=\'none\'">'
+    + '<span>Eating Out<br><small>Night out</small></span></button>';
+  $("mealPickerList").innerHTML = rows;
+  $("mealPickerList").querySelectorAll("button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var day = mealPickerDay;
+      var assignment, label;
+      if (btn.hasAttribute("data-recipe")) {
+        var r = recipeById(parseInt(btn.getAttribute("data-recipe"), 10));
+        assignment = { kind: "recipe", id: r.id };
+        label = r.name;
+      } else {
+        var special = btn.getAttribute("data-special");
+        assignment = { kind: "special", special: special };
+        label = SPECIALS[special].name;
+      }
+      weekState.assignments[day] = assignment;
+      saveWeek();
+      renderPlanner();
+      renderGrocery();
+      closeMealPicker();
+      toast(label + " set for " + day);
+    });
+  });
+  $("mealPickerModal").classList.add("open");
+}
+
+function closeMealPicker() {
+  $("mealPickerModal").classList.remove("open");
+  mealPickerDay = null;
+}
+
 /* ---------------- planner ---------------- */
 
 function renderPlanner() {
@@ -305,7 +350,8 @@ function renderPlanner() {
     var dateStr = shortDate(dateForDayIndex(idx));
     if (!a) {
       return '<div class="day-card empty"><div class="day-body"><h3>' + dateStr + '</h3>'
-        + '<div class="empty-note">Nothing planned yet</div></div></div>';
+        + '<div class="empty-note">Nothing planned yet</div>'
+        + '<div style="margin-top:10px"><button class="btn" data-add="' + day + '">Add dinner</button></div></div></div>';
     }
     var label = assignmentLabel(a);
     var time = "";
@@ -314,7 +360,8 @@ function renderPlanner() {
       + '<div class="day-body"><h3>' + dateStr + '</h3>'
       + '<div class="dish">' + esc(label) + '</div>'
       + (time ? '<div class="meta">' + esc(time) + '</div>' : "")
-      + '<div style="margin-top:10px"><button class="btn danger" data-clear="' + day + '">Clear</button></div>'
+      + '<div style="margin-top:10px"><button class="btn secondary" data-change="' + day + '">Change</button> '
+      + '<button class="btn danger" data-clear="' + day + '">Clear</button></div>'
       + '</div></div>';
   }).join("");
   grid.querySelectorAll("[data-clear]").forEach(function (btn) {
@@ -324,6 +371,16 @@ function renderPlanner() {
       saveWeek();
       renderPlanner();
       renderGrocery();
+    });
+  });
+  grid.querySelectorAll("[data-add]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      showMealPicker(btn.getAttribute("data-add"));
+    });
+  });
+  grid.querySelectorAll("[data-change]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      showMealPicker(btn.getAttribute("data-change"));
     });
   });
   renderCalendar();
@@ -721,6 +778,8 @@ $("timeFilter").addEventListener("change", renderRecipes);
 $("sortSelect").addEventListener("change", renderRecipes);
 $("addToWeekBtn").addEventListener("click", showDayPicker);
 $("closeModalBtn").addEventListener("click", closeRecipe);
+$("closeMealPickerBtn").addEventListener("click", closeMealPicker);
+$("mealPickerModal").addEventListener("click", function (e) { if (e.target === $("mealPickerModal")) closeMealPicker(); });
 $("recipeModal").addEventListener("click", function (e) { if (e.target === $("recipeModal")) closeRecipe(); });
 $("randomizeBtn").addEventListener("click", randomizeWeek);
 $("prevWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(currentWeekStart, -7)); });

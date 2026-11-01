@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
 <title>What's cookin', good lookin'?</title>
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -142,6 +141,19 @@
 </div>
 
 <div id="toast"></div>
+
+<!-- Meal picker modal (planner tab: add / change a day's dinner) -->
+<div id="mealPickerModal" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-body">
+      <h2 id="mealPickerTitle">Pick a dinner</h2>
+      <div id="mealPickerList" class="meal-picker-list"></div>
+      <div class="btn-row" style="margin: 20px 0 0">
+        <button id="closeMealPickerBtn" class="btn secondary">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="sync.js"></script>
 <script src="app.js"></script>
