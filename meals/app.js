@@ -222,8 +222,12 @@ function filteredRecipes() {
     if (time === "40" && (r.timeMin < 40 || r.timeMin > 45)) return false;
     if (time === "50" && r.timeMin < 50) return false;
     if (q) {
-      var hay = (r.name + " " + r.cuisineLabel + " " + r.ingredients.join(" ")).toLowerCase();
-      if (hay.indexOf(q) === -1) return false;
+      if (r.name.toLowerCase().indexOf(q) !== -1) return true;
+      if (q.length >= 3) {
+        var hay = (r.cuisineLabel + " " + r.ingredients.join(" ")).toLowerCase();
+        if (hay.indexOf(q) !== -1) return true;
+      }
+      return false;
     }
     return true;
   });
@@ -309,8 +313,8 @@ function showMealPicker(day) {
     var sorted = RECIPES.slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
     var list = sorted.filter(function (r) {
       if (!q) return true;
-      return r.name.toLowerCase().indexOf(q) !== -1
-        || r.ingredients.join(" ").toLowerCase().indexOf(q) !== -1;
+      if (r.name.toLowerCase().indexOf(q) !== -1) return true;
+      return q.length >= 3 && r.ingredients.join(" ").toLowerCase().indexOf(q) !== -1;
     });
     var rows = list.map(function (r) {
       return '<button data-recipe="' + r.id + '"><img src="' + r.img + '" alt="" onerror="this.style.display=\'none\'">'
