@@ -530,11 +530,11 @@ function sectionForItem(item) {
   var s = String(item).toLowerCase();
   if (/\bfrozen\b/.test(s)) return "Frozen";
   if (/\b(crushed tomatoes|tomato paste|diced tomatoes|sun-dried tomatoes)\b/.test(s)) return "Pantry";
-  if (/\b(salmon|fish|shrimp|prawn|chicken|beef|pork|steak|sausage|bacon|meat|impossible)\b/.test(s)) return "Meat & Seafood";
-  if (/\b(milk|cheese|butter|cream|yogurt|yoghurt|egg|paneer|cotija|parmesan|mozzarella|cheddar|feta)\b/.test(s)) return "Dairy & Eggs";
-  if (/\b(bread|naan|tortilla|bun|buns|roll|rolls|baguette|pita)\b/.test(s)) return "Bakery & Bread";
+  if (/\b(salmon|fish|shrimp|prawn|chicken|beef|pork|steaks?|sausages?|bacon|meat|impossible)\b/.test(s)) return "Meat & Seafood";
+  if (/\b(milk|cheese|butter|cream|yogurt|yoghurt|eggs?|paneer|cotija|parmesan|mozzarella|cheddar|feta)\b/.test(s)) return "Dairy & Eggs";
+  if (/\b(bread|naan|tortillas?|buns?|rolls?|baguette|pita)\b/.test(s)) return "Bakery & Bread";
   if (/\b(spinach|broccoli|kale|avocado|cucumber|tomato|onion|garlic|ginger|lemon|lime|carrot|potato|asparagus|zucchini|green beans|corn|mushroom|basil|cilantro|parsley|lettuce|greens|tofu|apple|banana|mango|herb)\b/.test(s)) return "Produce";
-  if (/\b(rice|pasta|noodle|udon|ramen|gnocchi|couscous|polenta|flour|oil|sauce|soy|miso|vinegar|spice|cumin|paprika|chili|peppercorn|curry|paste|sugar|salt|honey|peanut|cashew|almond|sesame|stock|broth|tamarind|gochujang|doubanjiang)\b/.test(s)) return "Pantry";
+  if (/\b(rice|pasta|noodle|udon|ramen|gnocchi|couscous|polenta|flour|oil|sauce|soy|miso|vinegar|spice|cumin|paprika|chili|peppercorns?|curry|paste|sugar|salt|honey|peanuts?|cashews?|almonds?|sesame|stock|broth|tamarind|gochujang|doubanjiang)\b/.test(s)) return "Pantry";
   return "Other";
 }
 
