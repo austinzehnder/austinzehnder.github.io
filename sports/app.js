@@ -154,11 +154,11 @@
         var plausible = (sport === 'football' && n >= 100 && n <= 160) || (sport === 'basketball' && n >= 300 && n <= 400);
         if (plausible) {
           teams = teams.filter(function (tm) { return ids[String(tm.id)]; });
-          $('teamMeta').textContent = '';
         } else {
-          $('teamMeta').textContent = 'Warning: division filter could not be verified from standings (' + n + ' teams) — check the team list before voting.';
         }
-        renderTeams(); renderBallot();
+        renderTeams();
+        if (!plausible) $('teamMeta').textContent += ' Warning: division filter could not be verified from standings — check the team list before voting.';
+        renderBallot();
         return loadPublished();
       })
       .then(function (shown) {
