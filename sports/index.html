@@ -18,7 +18,7 @@
 <p class="eyebrow">Austin Zehnder Analytics · College Sports</p>
 <h1>The Open Ballot</h1>
 <p class="lead">No committee. No sportswriters' room. FBS football and Division I basketball, ranked by the people who actually watch them.</p>
-<p>Sign up once. Every Sunday morning you get a ballot. Fill out your Top 25, and the fan ranking drops Sunday evening — with a short blurb on every team and what its recent form actually looks like.</p>
+<p>Sign up once. Every Sunday morning you get a ballot. Fill out your Top 25, and the fan ranking drops Sunday evening, with a short blurb on every team and what its recent form actually looks like.</p>
 <div class="cta-row">
 <a class="btn btn-primary" href="#vote">Vote this week →</a>
 <a class="btn btn-ghost" href="#rankings">See the rankings</a>
@@ -37,8 +37,13 @@
 <p class="small" id="rankMeta">Loading live records and form…</p>
 <div id="rankList" class="rank-list"></div>
 
+<h2>AP Top 25, for comparison</h2>
+<p class="small" id="apMeta">Loading the AP poll.</p>
+<p class="small">How to read this: the Open Ballot above is fan votes (or, right now, the AP seed clearly labeled as such). The AP list below is the sportswriters poll, live from ESPN. Where a team sits in each list is the comparison.</p>
+<div id="apList" class="ap-list"></div>
+
 <h2 id="teams">Teams</h2>
-<p><input id="teamSearch" type="search" placeholder="Search a team — try Kentucky, Ohio State, Duke…" aria-label="Search teams"></p>
+<p><input id="teamSearch" type="search" placeholder="Search a team: try Kentucky, Ohio State, Duke…" aria-label="Search teams"></p>
 <p class="small" id="teamMeta"></p>
 <div id="teamGrid" class="team-grid"></div>
 
@@ -46,7 +51,7 @@
 <div id="teamDetail" class="card" hidden></div>
 
 <h2 id="vote">Your ballot</h2>
-<p>Pick 25 teams, in order. #1 gets 25 points, #2 gets 24, down to 1 point for #25 — the same AP-style math. Tap a team below to add it, then move it up or down.</p>
+<p>Pick 25 teams, in order. #1 gets 25 points, #2 gets 24, down to 1 point for #25, the same AP-style math. Tap a team below to add it, then move it up or down.</p>
 <div id="ballot" class="card">
 <ol id="ballotList"></ol>
 <p><button class="btn btn-primary" id="submitBallot" type="button">Submit my ballot →</button> <span id="ballotMsg" class="small"></span></p>
