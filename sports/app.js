@@ -164,30 +164,28 @@
     }).catch(function () { return false; });
   }
 
-  function loadSport() {
-    $('rankMeta').textContent = 'Loading live records and form…';
-    $('teamMeta').textContent = 'Loading teams…';
-    var standingsData = null;
-    // IMPORTANT, verified 2026-11-02: the teams endpoint IGNORES the groups
-    // filter for football, ?groups=80&limit=500 still returns ~500 schools
-    // including Division II/III (Adams State, Amherst, etc.). So the FBS /
-    // Division I scope is enforced here by intersecting the teams list with
-    // the standings entries for that division group. If that intersection
-    // does not land in a plausible range, we keep the full list but warn,
-    // rather than silently presenting non-FBS teams as ballot options.
-    fetch('https://site.api.espn.com/apis/site/v2/sports/' + SPORTS[sport].api + '/teams?groups=' + SPORTS[sport].group + '&limit=500')
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        var raw = ((data.sports || [])[0] || {}).leagues || [];
-        var list = [];
-        raw.forEach(function (lg) { (lg.teams || []).forEach(function (w) { if (w.team) list.push(w.team); }); });
-        teams = list.map(function (tm) {
-          var rec = '';
-          try { rec = (tm.record && tm.record.items && tm.record.items[0] && tm.record.items[0].summary) || ''; } catch (e) {}
-          return { id: tm.id, displayName: tm.displayName, abbreviation: tm.abbreviation, logos: tm.logos, color: tm.color, record: rec };
-        }).sort(function (a, b) { return a.displayName.localeCompare(b.displayName); });
-        return fetch('https://site.api.espn.com/apis/site/v2/sports/' + SPORTS[sport].api + '/standings?groups=' + SPORTS[sport].group);
-      })
+  var standingsData = null;
+
+  function renderPreview() {
+    var entries = [];
+    try {
+      (standingsData.children || []).forEach(function (c) { (c.standings && c.standings.entries || []).forEach(function (e) { entries.push(e); }); });
+    } catch (e) {}
+    var preview = entries.map(function (e) {
+      var tm = e.team || {};
+      var rec = '';
+      try { rec = (e.stats || []).filter(function (s) { return s.name === 'overall'; })[0].displayValue || ''; } catch (e2) {}
+      var full = teams.find(function (x) { return String(x.id) === String(tm.id); });
+      return { displayName: tm.displayName, logos: full ? full.logos : tm.logos, record: rec };
+    }).filter(function (tm) { return tm.displayName; });
+    renderRankings(preview.length ? preview : teams.slice(0, 25));
+  }
+
+  function filterByStandings() {
+    // Non-blocking: a standings failure must never blank the team list or
+    // the published ranking. Verified 2026-11-02: the old chained version
+    // did exactly that on the live page (0 teams, no seed banner).
+    return fetch('https://site.api.espn.com/apis/site/v2/sports/' + SPORTS[sport].api + '/standings?groups=' + SPORTS[sport].group)
       .then(function (r) { return r.json(); })
       .then(function (data) {
         standingsData = data;
@@ -201,30 +199,43 @@
         var plausible = (sport === 'football' && n >= 100 && n <= 160) || (sport === 'basketball' && n >= 300 && n <= 400);
         if (plausible) {
           teams = teams.filter(function (tm) { return ids[String(tm.id)]; });
+          renderTeams(); renderBallot();
+          if (!publishedRows.length) renderPreview();
         } else {
+          $('teamMeta').textContent += ' Warning: division filter could not be verified from standings, check the team list before voting.';
         }
-        renderTeams();
-        if (!plausible) $('teamMeta').textContent += ' Warning: division filter could not be verified from standings, check the team list before voting.';
-        renderBallot();
-        return loadAP().then(function () { return loadPublished(); });
-      })
-      .then(function (shown) {
-        if (shown) return;
-        var entries = [];
-        try {
-          (standingsData.children || []).forEach(function (c) { (c.standings && c.standings.entries || []).forEach(function (e) { entries.push(e); }); });
-        } catch (e) {}
-        var preview = entries.map(function (e) {
-          var tm = e.team || {};
-          var rec = '';
-          try { rec = (e.stats || []).filter(function (s) { return s.name === 'overall'; })[0].displayValue || ''; } catch (e2) {}
-          var full = teams.find(function (x) { return String(x.id) === String(tm.id); });
-          return { displayName: tm.displayName, logos: full ? full.logos : tm.logos, record: rec };
-        }).filter(function (tm) { return tm.displayName; });
-        renderRankings(preview.length ? preview : teams.slice(0, 25));
       })
       .catch(function () {
-        $('rankMeta').textContent = 'Live data did not load (ESPN endpoint blocked or offline). Ballot builder still works once teams load, try refreshing.';
+        $('teamMeta').textContent += ' Warning: standings did not load, so the division filter could not be verified. The published ranking above is unaffected.';
+      });
+  }
+
+  function loadSport() {
+    $('rankMeta').textContent = 'Loading live records and form.';
+    $('teamMeta').textContent = 'Loading teams.';
+    standingsData = null; publishedRows = []; apTeams = []; apMap = {};
+    fetch('https://site.api.espn.com/apis/site/v2/sports/' + SPORTS[sport].api + '/teams?groups=' + SPORTS[sport].group + '&limit=500')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var raw = ((data.sports || [])[0] || {}).leagues || [];
+        var list = [];
+        raw.forEach(function (lg) { (lg.teams || []).forEach(function (w) { if (w.team) list.push(w.team); }); });
+        teams = list.map(function (tm) {
+          var rec = '';
+          try { rec = (tm.record && tm.record.items && tm.record.items[0] && tm.record.items[0].summary) || ''; } catch (e) {}
+          return { id: tm.id, displayName: tm.displayName, abbreviation: tm.abbreviation, logos: tm.logos, color: tm.color, record: rec };
+        }).sort(function (a, b) { return a.displayName.localeCompare(b.displayName); });
+        renderTeams(); renderBallot();
+        // Each of these runs independently: one failing must not blank the others.
+        loadAP();
+        filterByStandings();
+        return loadPublished();
+      })
+      .then(function (shown) {
+        if (!shown) renderPreview();
+      })
+      .catch(function () {
+        $('rankMeta').textContent = 'Live data did not load (ESPN endpoint blocked or offline). Try refreshing.';
         $('teamMeta').textContent = 'Could not load teams right now.';
         renderRankings([]);
       });
