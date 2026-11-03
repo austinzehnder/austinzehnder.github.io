@@ -120,38 +120,60 @@
   function loadSport() {
     $('rankMeta').textContent = 'Loading live records and form…';
     $('teamMeta').textContent = 'Loading teams…';
+    var standingsData = null;
+    // IMPORTANT, verified 2026-11-02: the teams endpoint IGNORES the groups
+    // filter for football — ?groups=80&limit=500 still returns ~500 schools
+    // including Division II/III (Adams State, Amherst, etc.). So the FBS /
+    // Division I scope is enforced here by intersecting the teams list with
+    // the standings entries for that division group. If that intersection
+    // does not land in a plausible range, we keep the full list but warn,
+    // rather than silently presenting non-FBS teams as ballot options.
     fetch('https://site.api.espn.com/apis/site/v2/sports/' + SPORTS[sport].api + '/teams?groups=' + SPORTS[sport].group + '&limit=500')
       .then(function (r) { return r.json(); })
       .then(function (data) {
         var raw = ((data.sports || [])[0] || {}).leagues || [];
         var list = [];
         raw.forEach(function (lg) { (lg.teams || []).forEach(function (w) { if (w.team) list.push(w.team); }); });
-        teams = list.map(function (t) {
+        teams = list.map(function (tm) {
           var rec = '';
-          try { rec = (t.record && t.record.items && t.record.items[0] && t.record.items[0].summary) || ''; } catch (e) {}
-          return { id: t.id, displayName: t.displayName, abbreviation: t.abbreviation, logos: t.logos, color: t.color, record: rec };
+          try { rec = (tm.record && tm.record.items && tm.record.items[0] && tm.record.items[0].summary) || ''; } catch (e) {}
+          return { id: tm.id, displayName: tm.displayName, abbreviation: tm.abbreviation, logos: tm.logos, color: tm.color, record: rec };
         }).sort(function (a, b) { return a.displayName.localeCompare(b.displayName); });
-        renderTeams(); renderBallot();
-        return loadPublished().then(function (shown) {
-          if (shown) return null;
-          return fetch('https://site.api.espn.com/apis/site/v2/sports/' + SPORTS[sport].api + '/standings?groups=' + SPORTS[sport].group);
-        });
+        return fetch('https://site.api.espn.com/apis/site/v2/sports/' + SPORTS[sport].api + '/standings?groups=' + SPORTS[sport].group);
       })
-      .then(function (r) { return r ? r.json() : null; })
+      .then(function (r) { return r.json(); })
       .then(function (data) {
-        if (!data) return;
+        standingsData = data;
+        var ids = {};
+        try {
+          (data.children || []).forEach(function (c) {
+            (c.standings && c.standings.entries || []).forEach(function (e) { if (e.team && e.team.id) ids[String(e.team.id)] = true; });
+          });
+        } catch (e) {}
+        var n = Object.keys(ids).length;
+        var plausible = (sport === 'football' && n >= 100 && n <= 160) || (sport === 'basketball' && n >= 300 && n <= 400);
+        if (plausible) {
+          teams = teams.filter(function (tm) { return ids[String(tm.id)]; });
+          $('teamMeta').textContent = '';
+        } else {
+          $('teamMeta').textContent = 'Warning: division filter could not be verified from standings (' + n + ' teams) — check the team list before voting.';
+        }
+        renderTeams(); renderBallot();
+        return loadPublished();
+      })
+      .then(function (shown) {
+        if (shown) return;
         var entries = [];
         try {
-          var children = data.children || [];
-          children.forEach(function (c) { (c.standings && c.standings.entries || []).forEach(function (e) { entries.push(e); }); });
+          (standingsData.children || []).forEach(function (c) { (c.standings && c.standings.entries || []).forEach(function (e) { entries.push(e); }); });
         } catch (e) {}
         var preview = entries.map(function (e) {
-          var t = e.team || {};
+          var tm = e.team || {};
           var rec = '';
           try { rec = (e.stats || []).filter(function (s) { return s.name === 'overall'; })[0].displayValue || ''; } catch (e2) {}
-          var full = teams.find(function (x) { return String(x.id) === String(t.id); });
-          return { displayName: t.displayName, logos: full ? full.logos : t.logos, record: rec };
-        }).filter(function (t) { return t.displayName; });
+          var full = teams.find(function (x) { return String(x.id) === String(tm.id); });
+          return { displayName: tm.displayName, logos: full ? full.logos : tm.logos, record: rec };
+        }).filter(function (tm) { return tm.displayName; });
         renderRankings(preview.length ? preview : teams.slice(0, 25));
       })
       .catch(function () {
