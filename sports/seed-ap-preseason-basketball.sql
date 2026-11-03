@@ -1,12 +1,12 @@
--- Seed week ONLY — AP Top 25 Preseason, Week 1, 2026-27 season, dated 2026-10-19 (ESPN rankings feed, poll type "ap").
+-- Seed week ONLY  AP Top 25 Preseason, Week 1, 2026-27 season, dated 2026-10-19 (ESPN rankings feed, poll type "ap").
 -- This is NOT Open Ballot fan votes. The site labels this week as a seed.
 -- Run in the aza-sports Supabase SQL editor only. Safe to re-run (ON CONFLICT DO NOTHING).
 insert into public.poll_weeks (sport, week_label, ballot_opens, ballot_closes, results_published_at, status)
-values ('basketball', 'Seed — AP Top 25 Preseason Week 1 (Oct 19, 2026)', '2026-10-19 07:00:00+00', '2026-10-19 19:11:00+00', now(), 'published')
+values ('basketball', 'Seed: AP Top 25 Preseason Week 1 (Oct 19, 2026)', '2026-10-19 07:00:00+00', '2026-10-19 19:11:00+00', now(), 'published')
 on conflict (sport, week_label) do nothing;
 
 insert into public.poll_results (week_id, rank, team_name, points, first_place_votes, ballots_count, blurb)
-select id, rank, team_name, points, 0, 0, 'Seeded from the AP Top 25 Preseason, Week 1 (Oct 19, 2026) — not an Open Ballot fan vote.'
+select id, rank, team_name, points, 0, 0, 'Seeded from the AP Top 25 Preseason, Week 1 (Oct 19, 2026), not an Open Ballot fan vote.'
 from public.poll_weeks
 cross join (values
   (1, 'Florida Gators', 1461),
@@ -36,5 +36,5 @@ cross join (values
   (25, 'BYU Cougars', 179)
 ) as v(rank, team_name, points)
 where public.poll_weeks.sport = 'basketball'
-  and public.poll_weeks.week_label = 'Seed — AP Top 25 Preseason Week 1 (Oct 19, 2026)'
+  and public.poll_weeks.week_label = 'Seed: AP Top 25 Preseason Week 1 (Oct 19, 2026)'
 on conflict (week_id, rank) do nothing;

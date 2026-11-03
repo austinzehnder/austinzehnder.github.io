@@ -1,4 +1,4 @@
--- The Open Ballot by Austin Zehnder Analytics — Supabase schema, hardened
+-- The Open Ballot by Austin Zehnder Analytics | Supabase schema, hardened
 -- Project: new project "aza-sports". Do NOT reuse the whats-cookin
 -- meal-planner project (different data, different access rules).
 --
@@ -144,7 +144,7 @@ create policy "read poll weeks" on public.poll_weeks for select using (true);
 
 -- Ballots: insert own only (trigger adds the window checks); NO select,
 -- update, or delete policies, so no user can read anyone else's ballot
--- (including their own via REST after submit — results are the public
+-- (including their own via REST after submit, results are the public
 -- output, individual ballots are not). No anonymous inserts: anon role
 -- has no policy that passes without auth.uid(), and the trigger rejects
 -- a mismatched owner.
