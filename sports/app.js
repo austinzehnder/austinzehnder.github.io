@@ -373,6 +373,11 @@
     $('rankMeta').textContent = 'Loading live records and form.';
     $('teamMeta').textContent = 'Loading teams.';
     publishedRows = []; apTeams = []; apMap = {};
+    // Independent of the teams feed: a teams failure must not hide the
+    // published ranking or the AP comparison, both of which were lost
+    // in the 9:35pm live check for exactly this reason.
+    loadPublished();
+    loadAP();
     fetch('data/' + sport + '.json')
       .then(function (r) { if (!r.ok) throw new Error('no data file'); return r.json(); })
       .then(function (data) { return data.teams || []; })
@@ -393,18 +398,11 @@
       .then(function (list) {
         teams = list;
         renderTeams(); renderBallot();
-        // Each of these runs independently: one failing must not blank the others.
-        loadAP();
         filterByAllowlist();
-        return loadPublished();
-      })
-      .then(function (shown) {
-        if (!shown) renderRankings([]);
       })
       .catch(function () {
-        $('rankMeta').textContent = 'Live data did not load (ESPN endpoint blocked or offline). Try refreshing.';
         $('teamMeta').textContent = 'Could not load teams right now.';
-        renderRankings([]);
+        if (!publishedRows.length) renderRankings([]);
       });
   }
 
