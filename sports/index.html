@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Open Ballot | Austin Zehnder Analytics</title>
+<meta name="description" content="FBS football and Division I basketball, ranked by the fans. Sign up, vote every Sunday, see the Top 25 Sunday evening. By Austin Zehnder Analytics.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://a.espncdn.com data:; connect-src 'self' https://site.api.espn.com https://*.supabase.co; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="canonical" href="https://austinzehnder.com/sports/">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header><div class="wrap"><a class="brand" href="/">Austin<span>Zehnder</span></a><nav><a href="/#work">Work</a><a href="/analytics.html">Analytics</a><a href="/sports/">Sports</a><a href="/zehndra.html">Zehndra</a></nav></div></header>
+<main>
+<section class="wrap hero-sports">
+<p class="eyebrow">Austin Zehnder Analytics · College Sports</p>
+<h1>The Open Ballot</h1>
+<p class="lead">No committee. No sportswriters' room. FBS football and Division I basketball, ranked by the people who actually watch them.</p>
+<p>Sign up once. Every Sunday morning you get a ballot. Fill out your Top 25, and the fan ranking drops Sunday evening — with a short blurb on every team and what its recent form actually looks like.</p>
+<div class="cta-row">
+<a class="btn btn-primary" href="#vote">Vote this week →</a>
+<a class="btn btn-ghost" href="#rankings">See the rankings</a>
+</div>
+<p class="small" id="cycleNote">Weekly cycle: ballot email Sunday 9am PT · ballot closes Sunday 4pm PT · rankings released Sunday 5pm PT. Times are adjustable in one config line.</p>
+<p class="small" id="demoNote" hidden>Demo mode: no Supabase project is connected yet, so votes save on this device only and the rankings below are a sample. Connect Supabase (see supabase-schema.sql) to go live.</p>
+</section>
+
+<section class="wrap">
+<div class="tabs" role="tablist">
+<button class="tab active" data-sport="football" role="tab">Football</button>
+<button class="tab" data-sport="basketball" role="tab">Basketball</button>
+</div>
+
+<h2 id="rankings">This week's Top 25</h2>
+<p class="small" id="rankMeta">Loading live records and form…</p>
+<div id="rankList" class="rank-list"></div>
+
+<h2 id="teams">Teams</h2>
+<p><input id="teamSearch" type="search" placeholder="Search a team — try Kentucky, Ohio State, Duke…" aria-label="Search teams"></p>
+<p class="small" id="teamMeta"></p>
+<div id="teamGrid" class="team-grid"></div>
+
+<h2 id="teamDetailTitle" hidden>Team detail</h2>
+<div id="teamDetail" class="card" hidden></div>
+
+<h2 id="vote">Your ballot</h2>
+<p>Pick 25 teams, in order. #1 gets 25 points, #2 gets 24, down to 1 point for #25 — the same AP-style math. Tap a team below to add it, then move it up or down.</p>
+<div id="ballot" class="card">
+<ol id="ballotList"></ol>
+<p><button class="btn btn-primary" id="submitBallot" type="button">Submit my ballot →</button> <span id="ballotMsg" class="small"></span></p>
+<p class="small" id="ballotCount">0 / 25 picked. A ballot needs all 25 to count.</p>
+</div>
+<p class="small">Tap any team in the grid above to add it to your ballot.</p>
+
+<h2 id="signup">Sign up for the Sunday ballot</h2>
+<form class="card" id="signupForm">
+<label for="signupEmail">Email</label>
+<input id="signupEmail" type="email" required placeholder="you@example.com">
+<label for="signupPassword">Password (8+ characters, for signing in to vote)</label>
+<input id="signupPassword" type="password" required minlength="8" placeholder="Choose a password">
+<label for="favTeam">Favorite team (optional)</label>
+<input id="favTeam" placeholder="e.g. Kentucky">
+<p><label><input type="checkbox" id="notifyEmail" checked> Email me the ballot every Sunday</label></p>
+<p><button class="btn btn-primary" type="submit">Sign me up →</button> <button class="btn btn-ghost" id="signinBtn" type="button">Sign in to vote</button> <span id="signupMsg" class="small"></span></p>
+<p class="small">One ballot per person, per sport, per week. Supabase Auth handles sign-in; your email is only used for the Sunday ballot and results, never sold.</p>
+</form>
+<p class="small">Data: team info, records, schedules and scores via ESPN's public site API (unofficial, no key required). Logos are the schools' own marks, shown via ESPN. Rankings themselves are fan votes, not ESPN's. Scope: FBS football and NCAA Division I men's basketball only.</p>
+</section>
+</main>
+<footer><div class="wrap"><p>© Austin Zehnder Analytics · The Open Ballot · austinzehnder.com/sports/</p></div></footer>
+<script src="app.js"></script>
+</body>
+</html>
