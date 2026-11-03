@@ -23,6 +23,15 @@ h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:tex
 .btn-primary{background:var(--grad);color:#070b16}
 .cta{display:inline-block;background:var(--grad);color:#070b16;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:700}
 .btn-ghost{border:1px solid var(--line);color:var(--text);background:var(--panel)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:32px 0 8px}
+.tile{display:block;border-radius:18px;padding:28px 22px;text-decoration:none;color:#fff;border:1px solid var(--line);transition:transform .15s}
+.tile:hover{transform:translateY(-3px)}
+.tile b{display:block;font-size:1.9rem;letter-spacing:-.02em;line-height:1.1}
+.tile span{display:block;margin-top:6px;color:rgba(255,255,255,.85);font-size:.95rem}
+.tile-analytics{background:linear-gradient(135deg,#0e7490,#2563eb)}
+.tile-sports{background:linear-gradient(135deg,#7c3aed,#db2777)}
+.tile-zehndra{background:linear-gradient(135deg,#0f766e,#16a34a)}
+.tile-writing{background:linear-gradient(135deg,#b45309,#dc2626)}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin:40px 0 8px}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
 .stat b{font-size:1.6rem;display:block}
