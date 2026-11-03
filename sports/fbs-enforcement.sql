@@ -19,7 +19,7 @@ as $$
 $$;
 
 insert into public.fbs_teams (team_name, team_key)
-select v, public.norm_team_name(v) from (values
+select v.team_name, public.norm_team_name(v.team_name) from (values
   ('Boston College Eagles'),
   ('California Golden Bears'),
   ('Clemson Tigers'),
@@ -166,7 +166,7 @@ select v, public.norm_team_name(v) from (values
   ('North Carolina State Wolfpack'),
   ('Alabama Birmingham Blazers'),
   ('Texas San Antonio Roadrunners')
-) as v
+) as v(team_name)
 on conflict (team_name) do nothing;
 
 alter table public.fbs_teams enable row level security;
