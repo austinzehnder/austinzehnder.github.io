@@ -87,6 +87,7 @@ def parse_ap(data):
             continue
         out.append({
             "rank": e.get("current") or e.get("rank") or e.get("position") or (i + 1),
+            "id": tm.get("id"),
             "name": name,
             "logos": tm.get("logos") or e.get("logos") or [],
             "points": e.get("points") or 0,
@@ -96,10 +97,20 @@ def parse_ap(data):
 
 def build(sport, teams_url, rankings_url, fbs_only):
     teams = parse_teams(get(teams_url))
+    raw_count = len(teams)
     if fbs_only:
-        keys = fbs_keys()
-        teams = [t for t in teams if norm(t.get("displayName")) in keys or norm(t.get("shortDisplayName")) in keys]
+        keys = {norm(k) for k in fbs_keys()}
+        teams = [t for t in teams if norm(t.get("displayName")) in keys]
+        missing = sorted(keys - {norm(t.get("displayName")) for t in teams})
+        print(f"{sport}: raw {raw_count} teams, {len(teams)} after FBS filter, missing {len(missing)}: {missing}")
     ap = parse_ap(get(rankings_url))
+    # Rankings feed team names are short names (Hurricanes, Bulldogs); resolve
+    # to full display names via the teams feed so they match seed/ballot names.
+    by_id = {t.get("id"): t.get("displayName") for t in teams}
+    for row in ap:
+        if row.get("id") in by_id:
+            row["name"] = by_id[row["id"]]
+        row.pop("id", None)
     return {"teams": teams, "ap": ap}
 
 
@@ -107,9 +118,9 @@ def main():
     data_dir = ROOT / "data"
     data_dir.mkdir(exist_ok=True)
     jobs = [
-        ("football", "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams?limit=500",
+        ("football", "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams?limit=1000",
          "https://site.api.espn.com/apis/site/v2/sports/football/college-football/rankings", True),
-        ("basketball", "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams?groups=50&limit=500",
+        ("basketball", "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams?groups=50&limit=1000",
          "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/rankings", False),
     ]
     for sport, teams_url, rankings_url, fbs_only in jobs:
