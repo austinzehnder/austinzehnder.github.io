@@ -154,7 +154,7 @@
     "south carolina gamecocks",
     "tennessee volunteers",
     "texas longhorns",
-    "texas a&m aggies",
+    "texas a m aggies",
     "vanderbilt commodores",
     // Sun Belt (14)
     "app state mountaineers",
