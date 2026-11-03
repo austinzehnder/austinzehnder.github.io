@@ -283,9 +283,23 @@
 
   function loadAP() {
     $('apMeta').textContent = 'Loading the AP poll.';
-    return fetch('https://site.api.espn.com/apis/site/v2/sports/' + SPORTS[sport].api + '/rankings')
-      .then(function (r) { return r.json(); })
+    return fetch('data/' + sport + '.json')
+      .then(function (r) { if (!r.ok) throw new Error('no data file'); return r.json(); })
       .then(function (data) {
+        apTeams = (data.ap || []).map(function (row) {
+          return { rank: row.rank, name: row.name, logos: row.logos || [], points: row.points || 0 };
+        });
+        apMap = {};
+        apTeams.forEach(function (r) { apMap[r.name] = r.rank; });
+        renderAP();
+        return true;
+      })
+      .catch(function () {
+        return fetch('https://site.api.espn.com/apis/site/v2/sports/' + SPORTS[sport].api + '/rankings')
+          .then(function (r) { return r.json(); });
+      })
+      .then(function (data) {
+        if (data === true) return true;
         var polls = data.rankings || data.polls || [];
         var ap = null;
         polls.forEach(function (poll) {
@@ -359,17 +373,25 @@
     $('rankMeta').textContent = 'Loading live records and form.';
     $('teamMeta').textContent = 'Loading teams.';
     publishedRows = []; apTeams = []; apMap = {};
-    fetch('https://site.api.espn.com/apis/site/v2/sports/' + SPORTS[sport].api + '/teams?groups=' + SPORTS[sport].group + '&limit=500')
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        var raw = ((data.sports || [])[0] || {}).leagues || [];
-        var list = [];
-        raw.forEach(function (lg) { (lg.teams || []).forEach(function (w) { if (w.team) list.push(w.team); }); });
-        teams = list.map(function (tm) {
-          var rec = '';
-          try { rec = (tm.record && tm.record.items && tm.record.items[0] && tm.record.items[0].summary) || ''; } catch (e) {}
-          return { id: tm.id, displayName: tm.displayName, abbreviation: tm.abbreviation, logos: tm.logos, color: tm.color, record: rec };
-        }).sort(function (a, b) { return a.displayName.localeCompare(b.displayName); });
+    fetch('data/' + sport + '.json')
+      .then(function (r) { if (!r.ok) throw new Error('no data file'); return r.json(); })
+      .then(function (data) { return data.teams || []; })
+      .catch(function () {
+        return fetch('https://site.api.espn.com/apis/site/v2/sports/' + SPORTS[sport].api + '/teams?groups=' + SPORTS[sport].group + '&limit=500')
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var raw = ((data.sports || [])[0] || {}).leagues || [];
+            var list = [];
+            raw.forEach(function (lg) { (lg.teams || []).forEach(function (w) { if (w.team) list.push(w.team); }); });
+            return list.map(function (tm) {
+              var rec = '';
+              try { rec = (tm.record && tm.record.items && tm.record.items[0] && tm.record.items[0].summary) || ''; } catch (e) {}
+              return { id: tm.id, displayName: tm.displayName, abbreviation: tm.abbreviation, logos: tm.logos, color: tm.color, record: rec };
+            }).sort(function (a, b) { return a.displayName.localeCompare(b.displayName); });
+          });
+      })
+      .then(function (list) {
+        teams = list;
         renderTeams(); renderBallot();
         // Each of these runs independently: one failing must not blank the others.
         loadAP();
