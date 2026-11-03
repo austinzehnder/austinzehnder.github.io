@@ -283,7 +283,7 @@
 
   function loadAP() {
     $('apMeta').textContent = 'Loading the AP poll.';
-    return fetch('data/' + sport + '.json')
+    return fetch('data/' + sport + '.json?v=20261102')
       .then(function (r) { if (!r.ok) throw new Error('no data file'); return r.json(); })
       .then(function (data) {
         apTeams = (data.ap || []).map(function (row) {
@@ -378,7 +378,7 @@
     // in the 9:35pm live check for exactly this reason.
     loadPublished();
     loadAP();
-    fetch('data/' + sport + '.json')
+    fetch('data/' + sport + '.json?v=20261102')
       .then(function (r) { if (!r.ok) throw new Error('no data file'); return r.json(); })
       .then(function (data) { return data.teams || []; })
       .catch(function () {
