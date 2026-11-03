@@ -19,6 +19,182 @@
     football: { label: 'Football', api: 'football/college-football', group: 80 },
     basketball: { label: 'Basketball', api: 'basketball/mens-college-basketball', group: 50 }
   };
+  // 2026 FBS allowlist: 138 teams, conference by conference (ACC 17, American 14,
+  // Big 12 16, Big Ten 18, CUSA 10, MAC 13, Mountain West 10, Pac-12 8, SEC 16,
+  // Sun Belt 14, Independents 2). ESPN's teams feed includes Division II/III
+  // schools and its standings/group endpoints 404, so this list, not ESPN's
+  // division filter, is what makes the ballot FBS-only.
+  var FBS_TEAMS = [
+    // ACC (17)
+    "boston college eagles",
+    "california golden bears",
+    "clemson tigers",
+    "duke blue devils",
+    "florida state seminoles",
+    "georgia tech yellow jackets",
+    "louisville cardinals",
+    "miami hurricanes",
+    "nc state wolfpack",
+    "north carolina tar heels",
+    "pittsburgh panthers",
+    "smu mustangs",
+    "stanford cardinal",
+    "syracuse orange",
+    "virginia cavaliers",
+    "virginia tech hokies",
+    "wake forest demon deacons",
+    // American (14)
+    "army black knights",
+    "charlotte 49ers",
+    "east carolina pirates",
+    "florida atlantic owls",
+    "memphis tigers",
+    "navy midshipmen",
+    "north texas mean green",
+    "rice owls",
+    "temple owls",
+    "tulane green wave",
+    "tulsa golden hurricane",
+    "uab blazers",
+    "south florida bulls",
+    "utsa roadrunners",
+    // Big 12 (16)
+    "arizona wildcats",
+    "arizona state sun devils",
+    "baylor bears",
+    "byu cougars",
+    "cincinnati bearcats",
+    "colorado buffaloes",
+    "houston cougars",
+    "iowa state cyclones",
+    "kansas jayhawks",
+    "kansas state wildcats",
+    "oklahoma state cowboys",
+    "tcu horned frogs",
+    "texas tech red raiders",
+    "ucf knights",
+    "utah utes",
+    "west virginia mountaineers",
+    // Big Ten (18)
+    "illinois fighting illini",
+    "indiana hoosiers",
+    "iowa hawkeyes",
+    "maryland terrapins",
+    "michigan wolverines",
+    "michigan state spartans",
+    "minnesota golden gophers",
+    "nebraska cornhuskers",
+    "northwestern wildcats",
+    "ohio state buckeyes",
+    "oregon ducks",
+    "penn state nittany lions",
+    "purdue boilermakers",
+    "rutgers scarlet knights",
+    "ucla bruins",
+    "usc trojans",
+    "washington huskies",
+    "wisconsin badgers",
+    // CUSA (10)
+    "delaware blue hens",
+    "fiu panthers",
+    "jacksonville state gamecocks",
+    "kennesaw state owls",
+    "liberty flames",
+    "middle tennessee blue raiders",
+    "missouri state bears",
+    "new mexico state aggies",
+    "sam houston bearkats",
+    "western kentucky hilltoppers",
+    // MAC (13)
+    "akron zips",
+    "ball state cardinals",
+    "bowling green falcons",
+    "buffalo bulls",
+    "central michigan chippewas",
+    "eastern michigan eagles",
+    "kent state golden flashes",
+    "miami redhawks",
+    "ohio bobcats",
+    "sacramento state hornets",
+    "toledo rockets",
+    "umass minutemen",
+    "western michigan broncos",
+    // Mountain West (10)
+    "air force falcons",
+    "hawaii rainbow warriors",
+    "nevada wolf pack",
+    "new mexico lobos",
+    "unlv rebels",
+    "san jose state spartans",
+    "wyoming cowboys",
+    "northern illinois huskies",
+    "utep miners",
+    "north dakota state bison",
+    // Pac-12 (8)
+    "boise state broncos",
+    "colorado state rams",
+    "fresno state bulldogs",
+    "oregon state beavers",
+    "san diego state aztecs",
+    "texas state bobcats",
+    "utah state aggies",
+    "washington state cougars",
+    // SEC (16)
+    "alabama crimson tide",
+    "arkansas razorbacks",
+    "auburn tigers",
+    "florida gators",
+    "georgia bulldogs",
+    "kentucky wildcats",
+    "lsu tigers",
+    "mississippi state bulldogs",
+    "missouri tigers",
+    "oklahoma sooners",
+    "ole miss rebels",
+    "south carolina gamecocks",
+    "tennessee volunteers",
+    "texas longhorns",
+    "texas a&m aggies",
+    "vanderbilt commodores",
+    // Sun Belt (14)
+    "app state mountaineers",
+    "arkansas state red wolves",
+    "coastal carolina chanticleers",
+    "georgia southern eagles",
+    "georgia state panthers",
+    "james madison dukes",
+    "louisiana ragin cajuns",
+    "louisiana monroe warhawks",
+    "louisiana tech bulldogs",
+    "marshall thundering herd",
+    "old dominion monarchs",
+    "south alabama jaguars",
+    "southern miss golden eagles",
+    "troy trojans",
+    // Independents (2)
+    "notre dame fighting irish",
+    "uconn huskies",
+    // Aliases for ESPN/common name variants
+    "appalachian state mountaineers",
+    "delaware fightin blue hens",
+    "florida international panthers",
+    "central florida knights",
+    "southern california trojans",
+    "north carolina state wolfpack",
+    "alabama birmingham blazers",
+    "texas san antonio roadrunners",
+  ];
+  function normName(s) {
+    return String(s || '').toLowerCase()
+      .replace(/['.]/g, '')
+      .replace(/[^a-z0-9 ]/g, ' ')
+      .replace(/\s+/g, ' ').trim();
+  }
+  function isFBS(tm) {
+    return FBS_TEAMS.indexOf(normName(tm.displayName)) > -1 ||
+      FBS_TEAMS.indexOf(normName(tm.shortDisplayName || '')) > -1;
+  }
+
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   var sport = 'football', teams = [], ballot = [], apTeams = [], apMap = {}, publishedRows = [];
   var $ = function (id) { return document.getElementById(id); };
@@ -164,56 +340,25 @@
     }).catch(function () { return false; });
   }
 
-  var standingsData = null;
-
-  function renderPreview() {
-    var entries = [];
-    try {
-      (standingsData.children || []).forEach(function (c) { (c.standings && c.standings.entries || []).forEach(function (e) { entries.push(e); }); });
-    } catch (e) {}
-    var preview = entries.map(function (e) {
-      var tm = e.team || {};
-      var rec = '';
-      try { rec = (e.stats || []).filter(function (s) { return s.name === 'overall'; })[0].displayValue || ''; } catch (e2) {}
-      var full = teams.find(function (x) { return String(x.id) === String(tm.id); });
-      return { displayName: tm.displayName, logos: full ? full.logos : tm.logos, record: rec };
-    }).filter(function (tm) { return tm.displayName; });
-    renderRankings(preview.length ? preview : teams.slice(0, 25));
-  }
-
-  function filterByStandings() {
-    // Non-blocking: a standings failure must never blank the team list or
-    // the published ranking. Verified 2026-11-02: the old chained version
-    // did exactly that on the live page (0 teams, no seed banner).
-    return fetch('https://site.api.espn.com/apis/site/v2/sports/' + SPORTS[sport].api + '/standings?groups=' + SPORTS[sport].group)
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        standingsData = data;
-        var ids = {};
-        try {
-          (data.children || []).forEach(function (c) {
-            (c.standings && c.standings.entries || []).forEach(function (e) { if (e.team && e.team.id) ids[String(e.team.id)] = true; });
-          });
-        } catch (e) {}
-        var n = Object.keys(ids).length;
-        var plausible = (sport === 'football' && n >= 100 && n <= 160) || (sport === 'basketball' && n >= 300 && n <= 400);
-        if (plausible) {
-          teams = teams.filter(function (tm) { return ids[String(tm.id)]; });
-          renderTeams(); renderBallot();
-          if (!publishedRows.length) renderPreview();
-        } else {
-          $('teamMeta').textContent += ' Warning: division filter could not be verified from standings, check the team list before voting.';
-        }
-      })
-      .catch(function () {
-        $('teamMeta').textContent += ' Warning: standings did not load, so the division filter could not be verified. The published ranking above is unaffected.';
-      });
+  function filterByAllowlist() {
+    // Football only: basketball uses ESPN groups=50, which verified as
+    // Division I only in its first 20, and has schools with no football team.
+    if (sport !== 'football') return;
+    var before = teams.length;
+    var filtered = teams.filter(isFBS);
+    if (filtered.length >= 130) {
+      teams = filtered;
+      renderTeams(); renderBallot();
+      $('teamMeta').textContent = teams.length + ' FBS teams loaded for ' + SPORTS[sport].label.toLowerCase() + '. Tap one to add it to your ballot or open its detail.';
+    } else {
+      $('teamMeta').textContent += ' Warning: FBS allowlist matched only ' + filtered.length + ' of ' + before + ' teams, so the full list is shown. Check before voting.';
+    }
   }
 
   function loadSport() {
     $('rankMeta').textContent = 'Loading live records and form.';
     $('teamMeta').textContent = 'Loading teams.';
-    standingsData = null; publishedRows = []; apTeams = []; apMap = {};
+    publishedRows = []; apTeams = []; apMap = {};
     fetch('https://site.api.espn.com/apis/site/v2/sports/' + SPORTS[sport].api + '/teams?groups=' + SPORTS[sport].group + '&limit=500')
       .then(function (r) { return r.json(); })
       .then(function (data) {
@@ -228,11 +373,11 @@
         renderTeams(); renderBallot();
         // Each of these runs independently: one failing must not blank the others.
         loadAP();
-        filterByStandings();
+        filterByAllowlist();
         return loadPublished();
       })
       .then(function (shown) {
-        if (!shown) renderPreview();
+        if (!shown) renderRankings([]);
       })
       .catch(function () {
         $('rankMeta').textContent = 'Live data did not load (ESPN endpoint blocked or offline). Try refreshing.';
