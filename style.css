@@ -10,7 +10,7 @@ header .wrap{display:flex;justify-content:space-between;align-items:center;paddi
 nav a{margin-left:18px;color:var(--muted);text-decoration:none;font-weight:600}
 nav a:hover{color:var(--text)}
 .hero{padding:72px 0 48px;background:radial-gradient(600px 300px at 20% 0%,rgba(45,212,191,.25),transparent 60%),radial-gradient(600px 300px at 90% 20%,rgba(96,165,250,.25),transparent 60%)}
-.hero-photo{width:100%;height:360px;object-fit:cover;border-radius:18px;border:1px solid var(--line);margin-top:32px;display:block}
+.hero-photo{width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;border-radius:18px;border:1px solid var(--line);margin-top:32px;display:block}
 .profile-photo{width:180px;height:220px;object-fit:cover;object-position:top;border-radius:18px;border:1px solid var(--line);display:block;margin:20px 0 8px}
 .volunteer-photo{width:100%;height:420px;object-fit:contain;background:#0b1220;border-radius:14px;border:1px solid var(--line);display:block}
 .photo-credit{color:var(--muted);font-size:.85rem;margin-top:8px}
