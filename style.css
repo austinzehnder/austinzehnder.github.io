@@ -29,6 +29,7 @@ h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:tex
 .tile b{display:block;font-size:1.9rem;letter-spacing:-.02em;line-height:1.1}
 .tile span{display:block;margin-top:6px;color:rgba(255,255,255,.85);font-size:.95rem}
 .tile-analytics{background:linear-gradient(135deg,#0e7490,#2563eb)}
+.tile-realestate{background:linear-gradient(135deg,#065f46,#0ea5e9)}
 .tile-sports{background:linear-gradient(135deg,#7c3aed,#db2777)}
 .tile-zehndra{background:linear-gradient(135deg,#0f766e,#16a34a)}
 .tile-writing{background:linear-gradient(135deg,#b45309,#dc2626)}
