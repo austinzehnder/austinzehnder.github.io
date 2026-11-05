@@ -385,14 +385,18 @@ function renderPlanner() {
     var label = assignmentLabel(a);
     var time = "";
     if (a.kind === "recipe") { var r = recipeById(a.id); time = r ? r.timeLabel : ""; }
-    return '<div class="day-card"><img src="' + assignmentImg(a) + '" alt="' + esc(label) + '" onerror="this.style.display=\'none\'">'
+    return '<div class="day-card' + (a.kind === "recipe" ? ' data-recipe-card="' + a.id + '" style="cursor:pointer" title="Click to view recipe"' : "") + '><img src="' + assignmentImg(a) + '" alt="' + esc(label) + '" onerror="this.style.display=\'none\'">'
       + '<div class="day-body"><h3>' + dateStr + '</h3>'
       + '<div class="dish">' + esc(label) + '</div>'
       + (time ? '<div class="meta">' + esc(time) + '</div>' : "")
-      + '<div style="margin-top:10px"><button class="btn secondary" data-change="' + day + '">Change</button> '
+      + '<div style="margin-top:10px">' + (a.kind === "recipe" ? '<button class="btn" data-view-recipe="' + a.id + '">View recipe</button> ' : "")
+        + '<button class="btn secondary" data-change="' + day + '">Change</button> '
       + '<button class="btn danger" data-clear="' + day + '">Clear</button></div>'
       + '</div></div>';
   }).join("");
+  grid.querySelectorAll("[data-change],[data-clear]").forEach(function (btn) {
+    btn.addEventListener("click", function (e) { e.stopPropagation(); });
+  });
   grid.querySelectorAll("[data-clear]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var day = btn.getAttribute("data-clear");
@@ -401,6 +405,15 @@ function renderPlanner() {
       renderPlanner();
       renderGrocery();
     });
+  });
+  grid.querySelectorAll("[data-view-recipe]").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      openRecipe(btn.getAttribute("data-view-recipe"));
+    });
+  });
+  grid.querySelectorAll("[data-recipe-card]").forEach(function (el) {
+    el.addEventListener("click", function () { openRecipe(el.getAttribute("data-recipe-card")); });
   });
   grid.querySelectorAll("[data-add]").forEach(function (btn) {
     btn.addEventListener("click", function () {
