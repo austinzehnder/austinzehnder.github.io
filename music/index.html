@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Guitar Tabs — Austin Zehnder</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="head-row">
+    <div>
+      <h1>Guitar tabs</h1>
+      <p class="sub">Practice and performance set lists. Private — not linked from the homepage, not in the sitemap.</p>
+    </div>
+    <button id="themeBtn" class="btn secondary" type="button" title="Switch dark / light">☀️ Light</button>
+  </div>
+  <nav>
+    <button data-view="catalogue" class="active" type="button">Catalogue</button>
+    <button data-view="setlists" type="button">Set Lists</button>
+    <button data-view="add" type="button">+ Add Song</button>
+  </nav>
+</header>
+
+<main>
+  <!-- CATALOGUE -->
+  <section id="view-catalogue" class="view active">
+    <div class="filters">
+      <input id="search" type="search" placeholder="Search by song title or artist…" autocomplete="off" autocapitalize="off">
+      <span id="count" class="count"></span>
+    </div>
+    <div id="songList" class="list"></div>
+    <p id="noResults" class="empty-state" style="display:none">No songs match that search.</p>
+  </section>
+
+  <!-- SONG -->
+  <section id="view-song" class="view">
+    <div class="btn-row">
+      <button id="backBtn" class="btn secondary" type="button">← Catalogue</button>
+      <button id="songPerformBtn" class="btn" type="button">▶ Perform this song</button>
+    </div>
+    <div id="songDetail"></div>
+    <div class="btn-row">
+      <label>Add to set list:
+        <select id="addToSetSelect"></select>
+      </label>
+      <button id="addToSetBtn" class="btn secondary" type="button">Add to set list</button>
+    </div>
+    <div class="btn-row font-row">
+      <span>Text size:</span>
+      <button class="btn secondary" type="button" data-font="-1">A−</button>
+      <button class="btn secondary" type="button" data-font="1">A+</button>
+      <button class="btn secondary" type="button" data-font="0">Reset</button>
+    </div>
+  </section>
+
+  <!-- SET LISTS -->
+  <section id="view-setlists" class="view">
+    <div class="btn-row">
+      <input id="newSetName" type="text" placeholder="New set list name, e.g. Friday gig…" style="flex:1 1 220px">
+      <button id="createSetBtn" class="btn" type="button">Create set list</button>
+    </div>
+    <div id="setListWrap"></div>
+  </section>
+
+  <!-- ADD SONG -->
+  <section id="view-add" class="view">
+    <p class="empty-state">Paste a chord chart or tab. Chords go on their own line above the lyric line, exactly as you want them shown. Monospace is preserved.</p>
+    <form id="addForm">
+      <label>Song title <input id="fTitle" type="text" required placeholder="Don't Think Twice, It's All Right"></label>
+      <label>Artist <input id="fArtist" type="text" required placeholder="Bob Dylan"></label>
+      <div class="form-grid">
+        <label>Capo <input id="fCapo" type="text" placeholder="IV — leave blank for none"></label>
+        <label>Key <input id="fKey" type="text" placeholder="C"></label>
+      </div>
+      <label>Chords (comma separated) <input id="fChords" type="text" placeholder="C, G, Am, F, D7, G7, C7"></label>
+      <label>Tab / chord chart
+        <textarea id="fBody" rows="18" required placeholder="[Verse 1]&#10;C               G              Am&#10;Well, it ain't no use to sit and wonder why, babe"></textarea>
+      </label>
+      <div class="btn-row">
+        <button class="btn" type="submit">Save song</button>
+        <button id="clearAddBtn" class="btn secondary" type="button">Clear</button>
+      </div>
+      <p id="addMsg" class="empty-state"></p>
+    </form>
+  </section>
+</main>
+
+<!-- PERFORM MODE -->
+<div id="perform" class="perform" hidden>
+  <div class="perform-bar">
+    <span id="performProgress"></span>
+    <span id="performTitle"></span>
+    <span class="perform-controls">
+      <button id="fontDownBtn" class="btn secondary" type="button">A−</button>
+      <button id="fontUpBtn" class="btn secondary" type="button">A+</button>
+      <button id="scrollBtn" class="btn secondary" type="button">Auto-scroll: off</button>
+      <button id="performThemeBtn" class="btn secondary" type="button">☀️ Light</button>
+      <button id="exitPerformBtn" class="btn" type="button">Exit ✕</button>
+    </span>
+  </div>
+  <div id="performBody" class="perform-body"></div>
+  <div class="perform-nav">
+    <button id="prevBtn" class="btn secondary big" type="button">← Previous</button>
+    <button id="nextBtn" class="btn big" type="button">Next →</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="sync.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
