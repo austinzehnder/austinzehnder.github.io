@@ -1,6 +1,6 @@
-# Guitar Tabs — private music section (LOCAL ONLY, not pushed)
+# Guitar Tabs — private music section (LIVE at austinzehnder.com/music/)
 
-Status 2026-11-06: all 185 songs imported and verified locally. NOT pushed yet.
+Status 2026-11-06: pushed live as commit 910d0c9, verified live 13:37 PST — page loads, "185 of 185 songs", search works (e.g. Zach Bryan → 14 songs), robots.txt disallows /music/, /real-estate/ correctly 404s (held locally). Music-only push: the Real Estate commit was held on local branch `real-estate-hold`, then cherry-picked back as 164871c — local main is 1 commit ahead of origin/main, Real Estate still unpushed.
 Chunks received from Austin (upload, 3 parts): chunk 1 = 49 songs (9.9 MB),
 chunk 2 = 71 songs (14 MB), chunk 3 = 65 songs (14 MB). Total unique 185,
 no duplicates, all .docx, no Set List folder included. Browser Drive download
@@ -10,8 +10,13 @@ Drive, so he uploaded the zip in 3 chunks instead. Drive browser session closed.
 Importer: import/import_docx.py (paragraph-preserving, apostrophes restored
 from filename underscores, capo extracted, chords collected). 56 songs have a
 capo, 0 empty bodies. Dylan docx matches the example PDF (Capo IV).
-Still pending: Ultimate Guitar liked songs (login saved in vault 2026-11-06,
-not yet pulled) and Austin's approval to push.
+Still pending: pull full Ultimate Guitar tab content for the 97 new songs (URLs
+at import/ultimate-guitar-urls.txt; signed-out fetch returns metadata only, so
+pull must go through the signed-in browser in batches) and create the two
+Supabase tables below. Rocket Man: Austin chose the My Morning Jacket version.
+Fit to page (2026-11-06): opening a song shrinks the chart to fit the screen;
+longer songs split into pages with Prev/Next (chord lines never split from
+their lyric line). Same paging in Perform mode; Next advances pages, then songs.
 
 ## What it is
 Private tabs site at `austinzehnder.com/music/` (planned), for practice and

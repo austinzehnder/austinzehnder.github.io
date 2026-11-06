@@ -10,8 +10,14 @@
   var performIds = [];
   var performIdx = 0;
   var fontSize = parseInt(localStorage.getItem('guitar-tabs-font') || '16', 10);
+  var fitOn = localStorage.getItem('guitar-tabs-fit') !== '0';
   var scrollTimer = null;
   var scrollOn = false;
+  var currentSongLines = [];
+  var songPages = [];
+  var songPageIdx = 0;
+  var performPages = [];
+  var performPageIdx = 0;
 
   var $ = function (id) { return document.getElementById(id); };
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
@@ -31,6 +37,100 @@
     applyTheme();
   }
   function songById(id) { for (var i = 0; i < songs.length; i++) if (songs[i].id === id) return songs[i]; return null; }
+
+  /* ---------- fit to page: whole song on one screen, paged when long ---------- */
+  function isChordLine(line) {
+    var t = line.trim();
+    if (!t || /^\[.*\]$/.test(t)) return false;
+    var toks = t.split(/\s+/);
+    for (var i = 0; i < toks.length; i++) {
+      if (!/^[A-G][#b]?(m|maj|min|dim|aug|sus[24]?|add\d?|m7|maj7|7|6|9|11|13|°|ø)?(\/[A-G][#b]?)?$/i.test(toks[i])) return false;
+    }
+    return true;
+  }
+  function isSectionLine(line) { return /^\[.*\]\s*$/.test(line.trim()); }
+  /* Shrink the font (floor 10px) just enough that the longest line fits the width. */
+  function fitFont(lines, availW, baseSize) {
+    var size = baseSize, maxChars = 0;
+    lines.forEach(function (l) { if (l.length > maxChars) maxChars = l.length; });
+    while (size > 10 && maxChars * size * 0.6 > availW) size -= 1;
+    return size;
+  }
+  /* Split lines into pages that fit availH. wrapW: if set, long lines wrap at that
+   * width and count as multiple visual lines. Never splits a chord line from the
+   * lyric line under it, or a [Section] header from what follows it. */
+  function computePages(lines, fontPx, availH, lh, wrapW) {
+    var lineH = fontPx * lh;
+    var maxVisual = Math.max(4, Math.floor(availH / lineH));
+    var pages = [], i = 0;
+    while (i < lines.length) {
+      var visual = 0, end = i;
+      while (end < lines.length) {
+        var v = wrapW ? Math.max(1, Math.ceil(lines[end].length * fontPx * 0.6 / wrapW)) : 1;
+        if (visual + v > maxVisual && end > i) break;
+        visual += v; end += 1;
+      }
+      if (end === i) end = i + 1; /* one very long wrapped line still gets its own page */
+      while (end > i + 1 && end < lines.length && (isChordLine(lines[end - 1]) || isSectionLine(lines[end - 1]))) end -= 1;
+      pages.push({ start: i, end: end });
+      i = end;
+    }
+    return pages;
+  }
+  function renderPager(el, idx, total, onMove) {
+    if (!el) return;
+    if (total <= 1) { el.innerHTML = ''; return; }
+    el.innerHTML = '<button class="btn secondary" type="button" data-pg="-1">← Prev</button>' +
+      '<span class="count">Page ' + (idx + 1) + ' of ' + total + '</span>' +
+      '<button class="btn secondary" type="button" data-pg="1">Next →</button>';
+    el.querySelectorAll('[data-pg]').forEach(function (b) {
+      b.addEventListener('click', function () { onMove(parseInt(b.getAttribute('data-pg'), 10)); });
+    });
+  }
+  function songAvail() {
+    var chart = document.querySelector('#songDetail .chart');
+    if (!chart) return null;
+    var rect = chart.getBoundingClientRect();
+    return { h: Math.max(200, window.innerHeight - rect.top - 24), w: Math.max(200, chart.clientWidth - 40) };
+  }
+  function renderSongChart() {
+    var pre = $('songPre'); if (!pre) return;
+    if (!fitOn || !currentSongLines.length) {
+      pre.textContent = currentSongLines.join('\n');
+      pre.style.fontSize = '';
+      songPages = [{ start: 0, end: currentSongLines.length }]; songPageIdx = 0;
+      renderPager($('songPager'), 0, 1, function () {});
+      return;
+    }
+    var av = songAvail();
+    var size = fitFont(currentSongLines, av.w, fontSize);
+    var pages = computePages(currentSongLines, size, av.h, 1.55, null);
+    songPages = pages;
+    if (songPageIdx >= pages.length) songPageIdx = pages.length - 1;
+    var p = pages[songPageIdx];
+    pre.style.fontSize = size + 'px';
+    pre.textContent = currentSongLines.slice(p.start, p.end).join('\n');
+    renderPager($('songPager'), songPageIdx, pages.length, function (d) {
+      songPageIdx = Math.min(pages.length - 1, Math.max(0, songPageIdx + d));
+      renderSongChart();
+      window.scrollTo(0, 0);
+    });
+  }
+  function refitCurrent() {
+    if ($('view-song').classList.contains('active')) renderSongChart();
+    if (!$('perform').hidden) renderPerform();
+  }
+  function setFit(on) {
+    fitOn = on;
+    localStorage.setItem('guitar-tabs-fit', on ? '1' : '0');
+    updateFitLabels();
+    refitCurrent();
+  }
+  function updateFitLabels() {
+    var label = fitOn ? 'Fit: on' : 'Fit: off';
+    $('fitBtn').textContent = label;
+    $('performFitBtn').textContent = label;
+  }
 
   /* ---------- views ---------- */
   function showView(name) {
@@ -75,12 +175,16 @@
     $('songDetail').innerHTML =
       '<div class="song-head"><h2>' + esc(s.title) + '</h2><p>' + esc(s.artist) + '</p></div>' +
       '<div class="meta-row">' + capo + chips.map(function (c) { return '<span class="chip">' + c + '</span>'; }).join('') + '</div>' +
-      '<div class="chart"><pre>' + esc(s.body) + '</pre></div>';
+      '<div class="chart"><pre id="songPre"></pre></div><div class="pager" id="songPager"></div>';
     var sel = $('addToSetSelect');
     sel.innerHTML = setlists.map(function (set) { return '<option value="' + esc(set.id) + '">' + esc(set.name) + '</option>'; }).join('') ||
       '<option value="">(no set list yet — create one first)</option>';
+    currentSongLines = (s.body || '').split('\n');
+    songPageIdx = 0;
     applyFont();
     showView('song');
+    window.scrollTo(0, 0);
+    renderSongChart();
   }
 
   /* ---------- set lists ---------- */
@@ -146,7 +250,7 @@
   /* ---------- perform mode ---------- */
   function startPerform(ids, label) {
     if (!ids.length) { toast('Nothing to perform — add songs first.'); return; }
-    performIds = ids; performIdx = 0;
+    performIds = ids; performIdx = 0; performPageIdx = 0;
     $('perform').hidden = false;
     document.body.style.overflow = 'hidden';
     renderPerform();
@@ -154,12 +258,27 @@
   function renderPerform() {
     var s = songById(performIds[performIdx]);
     if (!s) return;
-    $('performProgress').textContent = 'Song ' + (performIdx + 1) + ' of ' + performIds.length;
+    var lines = (s.body || '').split('\n');
+    var bodyEl = $('performBody');
+    if (fitOn) {
+      var avH = bodyEl.clientHeight || window.innerHeight * 0.7;
+      var avW = Math.max(200, (bodyEl.clientWidth || window.innerWidth) - 40);
+      performPages = computePages(lines, fontSize, avH, 1.6, avW);
+      bodyEl.classList.add('paged');
+    } else {
+      performPages = [{ start: 0, end: lines.length }];
+      bodyEl.classList.remove('paged');
+    }
+    if (performPageIdx >= performPages.length) performPageIdx = performPages.length - 1;
+    if (performPageIdx < 0) performPageIdx = 0;
+    var p = performPages[performPageIdx];
+    $('performProgress').textContent = 'Song ' + (performIdx + 1) + ' of ' + performIds.length +
+      (performPages.length > 1 ? ' · Page ' + (performPageIdx + 1) + ' of ' + performPages.length : '');
     $('performTitle').textContent = s.title + ' — ' + s.artist + (s.capo ? '  ·  Capo ' + s.capo : '');
-    $('performBody').innerHTML = '<pre>' + esc(s.body) + '</pre>';
-    $('performBody').scrollTop = 0;
-    $('prevBtn').disabled = performIdx === 0;
-    $('nextBtn').textContent = performIdx === performIds.length - 1 ? 'Finish ✓' : 'Next →';
+    bodyEl.innerHTML = '<pre>' + esc(lines.slice(p.start, p.end).join('\n')) + '</pre>';
+    bodyEl.scrollTop = 0;
+    $('prevBtn').disabled = performIdx === 0 && performPageIdx === 0;
+    $('nextBtn').textContent = (performIdx === performIds.length - 1 && performPageIdx === performPages.length - 1) ? 'Finish ✓' : 'Next →';
     applyFont();
   }
   function stopPerform() {
@@ -168,10 +287,20 @@
     stopScroll();
   }
   function stopScroll() { if (scrollTimer) { clearInterval(scrollTimer); scrollTimer = null; } scrollOn = false; $('scrollBtn').textContent = 'Auto-scroll: off'; }
+  function advancePage() {
+    if (performPageIdx < performPages.length - 1) { performPageIdx++; renderPerform(); return true; }
+    if (performIdx < performIds.length - 1) { performIdx++; performPageIdx = 0; renderPerform(); return true; }
+    stopPerform();
+    return false;
+  }
   function toggleScroll() {
     if (scrollOn) { stopScroll(); return; }
     scrollOn = true; $('scrollBtn').textContent = 'Auto-scroll: on';
-    scrollTimer = setInterval(function () { $('performBody').scrollTop += 1; }, 60);
+    if (fitOn && performPages.length > 1) {
+      scrollTimer = setInterval(function () { if (!advancePage()) stopScroll(); }, 6000);
+    } else {
+      scrollTimer = setInterval(function () { $('performBody').scrollTop += 1; }, 60);
+    }
   }
 
   /* ---------- wiring ---------- */
@@ -197,6 +326,7 @@
       fontSize = d === 0 ? 16 : Math.min(32, Math.max(12, fontSize + d * 2));
       localStorage.setItem('guitar-tabs-font', String(fontSize));
       applyFont();
+      refitCurrent();
     });
   });
   $('createSetBtn').addEventListener('click', function () {
@@ -230,15 +360,26 @@
     toast('Song saved');
   });
   $('clearAddBtn').addEventListener('click', function () { $('addForm').reset(); $('addMsg').textContent = ''; });
-  $('prevBtn').addEventListener('click', function () { if (performIdx > 0) { performIdx--; renderPerform(); } });
+  $('prevBtn').addEventListener('click', function () {
+    if (performPageIdx > 0) { performPageIdx--; renderPerform(); }
+    else if (performIdx > 0) { performIdx--; performPageIdx = 999; renderPerform(); }
+  });
   $('nextBtn').addEventListener('click', function () {
-    if (performIdx < performIds.length - 1) { performIdx++; renderPerform(); }
+    if (performPageIdx < performPages.length - 1) { performPageIdx++; renderPerform(); }
+    else if (performIdx < performIds.length - 1) { performIdx++; performPageIdx = 0; renderPerform(); }
     else stopPerform();
   });
   $('exitPerformBtn').addEventListener('click', stopPerform);
-  $('fontDownBtn').addEventListener('click', function () { fontSize = Math.max(12, fontSize - 2); localStorage.setItem('guitar-tabs-font', String(fontSize)); applyFont(); });
-  $('fontUpBtn').addEventListener('click', function () { fontSize = Math.min(36, fontSize + 2); localStorage.setItem('guitar-tabs-font', String(fontSize)); applyFont(); });
+  $('fontDownBtn').addEventListener('click', function () { fontSize = Math.max(12, fontSize - 2); localStorage.setItem('guitar-tabs-font', String(fontSize)); applyFont(); refitCurrent(); });
+  $('fontUpBtn').addEventListener('click', function () { fontSize = Math.min(36, fontSize + 2); localStorage.setItem('guitar-tabs-font', String(fontSize)); applyFont(); refitCurrent(); });
   $('scrollBtn').addEventListener('click', toggleScroll);
+  $('fitBtn').addEventListener('click', function () { setFit(!fitOn); });
+  $('performFitBtn').addEventListener('click', function () { setFit(!fitOn); });
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(refitCurrent, 200);
+  });
   document.addEventListener('keydown', function (e) {
     if ($('perform').hidden) return;
     if (e.key === 'ArrowRight') $('nextBtn').click();
@@ -247,7 +388,7 @@
   });
 
   /* ---------- init ---------- */
-  applyTheme(); applyFont();
+  applyTheme(); applyFont(); updateFitLabels();
   fetch('songs.json').then(function (r) { return r.json(); }).then(function (seed) {
     seed.sort(function (a, b) { return a.title.localeCompare(b.title); });
     return TabSync.loadSongs(seed).then(function (loaded) {
