@@ -182,3 +182,30 @@ button.btn.danger { background: transparent; color: var(--danger); border: 1px s
 .grocery-section { margin: 22px 0 8px; font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .grocery-section:first-child { margin-top: 0; }
 button.btn.small { padding: 2px 8px; font-size: 15px; }
+
+/* ---------------- mobile ---------------- */
+@media (max-width: 640px) {
+  header { padding: 20px 16px 4px; }
+  header h1 { font-size: 26px; }
+  main { padding: 16px; }
+  nav { padding: 0 16px; gap: 6px; }
+  nav button { flex: 1; padding: 9px 4px; font-size: 14px; text-align: center; }
+
+  /* Week navigation: label centered on top, prev/next side by side,
+     week picker full width below — instead of each control on its own row. */
+  .week-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .week-nav span { grid-column: 1 / -1; text-align: center; }
+  .week-nav select { grid-column: 1 / -1; width: 100%; }
+
+  /* 16px inputs/selects stop iOS from zooming in on focus; 44px targets. */
+  button.btn, .btn-row select, .btn-row input[type="date"],
+  .btn-row input[type="text"], .filters input, .filters select {
+    font-size: 16px; min-height: 44px;
+  }
+  .filters input { flex-basis: 100%; }
+  .btn-row input[type="text"] { flex-basis: 100%; }
+
+  .modal-backdrop { padding: 16px 12px; }
+  .modal img { height: 200px; }
+  .grocery-item input[type="checkbox"] { width: 24px; height: 24px; }
+}
