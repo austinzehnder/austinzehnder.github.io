@@ -211,7 +211,7 @@ button.btn.danger:hover { background: rgba(217, 123, 108, 0.08); filter: none; }
   padding: 10px 12px; font-size: 15px; cursor: pointer;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.btn-row input[type="date"] {
+.btn-row input[type="date"], .btn-row input[type="week"] {
   background: var(--card); color: var(--text);
   border: 1px solid var(--line); border-radius: var(--radius-sm);
   padding: 9px 10px; font-size: 15px; cursor: pointer;
@@ -223,7 +223,7 @@ button.btn.danger:hover { background: rgba(217, 123, 108, 0.08); filter: none; }
   padding: 10px 12px; font-size: 15px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.btn-row select:focus, .btn-row input[type="text"]:focus, .btn-row input[type="date"]:focus {
+.btn-row select:focus, .btn-row input[type="text"]:focus, .btn-row input[type="date"]:focus, .btn-row input[type="week"]:focus {
   border-color: var(--accent); outline: none;
   box-shadow: 0 0 0 3px var(--accent-ring);
 }
@@ -324,7 +324,7 @@ button.btn.small { padding: 4px 10px; font-size: 15px; }
   .week-nav select { grid-column: 1 / -1; width: 100%; }
 
   /* 16px inputs/selects stop iOS from zooming in on focus; 44px targets. */
-  button.btn, .btn-row select, .btn-row input[type="date"],
+  button.btn, .btn-row select, .btn-row input[type="date"], .btn-row input[type="week"],
   .btn-row input[type="text"], .filters input, .filters select {
     font-size: 16px; min-height: 44px;
   }

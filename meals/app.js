@@ -106,6 +106,24 @@ function mondayOf(d) {
 function toISODate(d) {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
+/* ISO week helpers for the native week picker: "2026-W46" <-> its Monday.
+   The ISO year is the year of the week's Thursday, so late-December Mondays
+   can belong to week 1 of the next year (e.g. Mon Dec 29, 2025 = 2026-W01). */
+function isoWeekString(mondayISO) {
+  var p = mondayISO.split("-");
+  var monday = new Date(+p[0], +p[1] - 1, +p[2]);
+  var thursday = new Date(monday); thursday.setDate(monday.getDate() + 3);
+  var isoYear = thursday.getFullYear();
+  var week1Monday = mondayOf(new Date(isoYear, 0, 4));
+  var weekNo = Math.round((monday - week1Monday) / 604800000) + 1;
+  return isoYear + "-W" + String(weekNo).padStart(2, "0");
+}
+function mondayOfISOWeek(year, week) {
+  var week1Monday = mondayOf(new Date(year, 0, 4));
+  var monday = new Date(week1Monday);
+  monday.setDate(week1Monday.getDate() + (week - 1) * 7);
+  return monday;
+}
 function thisWeekStart() { return toISODate(mondayOf(new Date())); }
 function addDaysISO(iso, n) {
   var p = iso.split("-");
@@ -166,18 +184,9 @@ async function switchWeek(weekStart) {
 }
 
 async function renderWeekNav() {
-  var weeks = await WeekSync.listWeeks();
-  if (weeks.indexOf(currentWeekStart) === -1) weeks.push(currentWeekStart);
-  weeks.sort().reverse();
-  var optionsHtml = weeks.map(function (w) {
-    return '<option value="' + w + '"' + (w === currentWeekStart ? " selected" : "") + ">"
-      + weekLabel(w) + (w === thisWeekStart() ? " (this week)" : "") + "</option>";
-  }).join("");
-  $("pastWeeksSelect").innerHTML = optionsHtml;
-  $("groceryWeeksSelect").innerHTML = optionsHtml;
-  /* Keep the date picker in step with the week being viewed. */
+  /* Keep the week picker in step with the week being viewed. */
   var jump = $("weekJumpDate");
-  if (jump) jump.value = currentWeekStart;
+  if (jump) jump.value = jump.type === "week" ? isoWeekString(currentWeekStart) : currentWeekStart;
 }
 
 /* ---------------- helpers ---------------- */
@@ -885,16 +894,30 @@ $("recipeModal").addEventListener("click", function (e) { if (e.target === $("re
 $("randomizeBtn").addEventListener("click", randomizeWeek);
 $("prevWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(currentWeekStart, -7)); });
 $("nextWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(currentWeekStart, 7)); });
-$("pastWeeksSelect").addEventListener("change", function () { switchWeek($("pastWeeksSelect").value); });
 $("groceryPrevWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(currentWeekStart, -7)); });
 $("groceryNextWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(currentWeekStart, 7)); });
-$("groceryWeeksSelect").addEventListener("change", function () { switchWeek($("groceryWeeksSelect").value); });
+/* Native week picker where the browser has one; otherwise fall back to a
+   date picker (any picked day still snaps to its Monday, as before). */
+(function () {
+  var probe = document.createElement("input");
+  probe.setAttribute("type", "week");
+  if (probe.type !== "week") $("weekJumpDate").setAttribute("type", "date");
+})();
 $("weekJumpDate").addEventListener("change", function () {
-  var v = $("weekJumpDate").value;
+  var jump = $("weekJumpDate");
+  var v = jump.value;
   if (!v) return;
-  var p = v.split("-");
-  var picked = new Date(+p[0], +p[1] - 1, +p[2]); // local date, no UTC shift
-  switchWeek(toISODate(mondayOf(picked)));
+  var monday;
+  if (jump.type === "week") {
+    var m = v.match(/^(\d{4})-W(\d{2})$/);
+    if (!m) return;
+    monday = mondayOfISOWeek(parseInt(m[1], 10), parseInt(m[2], 10));
+  } else {
+    var p = v.split("-");
+    var picked = new Date(+p[0], +p[1] - 1, +p[2]); // local date, no UTC shift
+    monday = mondayOf(picked);
+  }
+  switchWeek(toISODate(monday));
 });
 $("clearWeekBtn").addEventListener("click", function () {
   weekState = defaultState();
