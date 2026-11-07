@@ -166,10 +166,6 @@ async function switchWeek(weekStart) {
 }
 
 async function renderWeekNav() {
-  var labelText = weekLabel(currentWeekStart)
-    + (currentWeekStart === thisWeekStart() ? " (this week)" : "");
-  $("weekLabel").textContent = labelText;
-  $("groceryWeekLabel").textContent = "Grocery list — " + labelText;
   var weeks = await WeekSync.listWeeks();
   if (weeks.indexOf(currentWeekStart) === -1) weeks.push(currentWeekStart);
   weeks.sort().reverse();
