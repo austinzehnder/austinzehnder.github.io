@@ -337,8 +337,11 @@ button.btn.small { padding: 4px 10px; font-size: 15px; }
   .btn-row input[type="text"], .filters input, .filters select {
     font-size: 16px; min-height: 44px;
   }
-  /* Filter controls stay slimmer than the 44px buttons: still easy to tap. */
+  /* Filter controls stay slimmer than the 44px buttons: still easy to tap.
+     Selects keep 14px type on phones (they open a picker, not a keyboard,
+     so no iOS focus zoom); the search field stays 16px. */
   .filters input, .filters select { min-height: 40px; }
+  .filters select { font-size: 14px; }
   .filters input { flex-basis: 100%; }
   .btn-row input[type="text"] { flex-basis: 100%; }
 
