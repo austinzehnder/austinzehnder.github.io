@@ -166,16 +166,19 @@ async function switchWeek(weekStart) {
 }
 
 async function renderWeekNav() {
-  $("weekLabel").textContent = weekLabel(currentWeekStart)
+  var labelText = weekLabel(currentWeekStart)
     + (currentWeekStart === thisWeekStart() ? " (this week)" : "");
+  $("weekLabel").textContent = labelText;
+  $("groceryWeekLabel").textContent = "Grocery list — " + labelText;
   var weeks = await WeekSync.listWeeks();
   if (weeks.indexOf(currentWeekStart) === -1) weeks.push(currentWeekStart);
   weeks.sort().reverse();
-  var sel = $("pastWeeksSelect");
-  sel.innerHTML = weeks.map(function (w) {
+  var optionsHtml = weeks.map(function (w) {
     return '<option value="' + w + '"' + (w === currentWeekStart ? " selected" : "") + ">"
       + weekLabel(w) + (w === thisWeekStart() ? " (this week)" : "") + "</option>";
   }).join("");
+  $("pastWeeksSelect").innerHTML = optionsHtml;
+  $("groceryWeeksSelect").innerHTML = optionsHtml;
   /* Keep the date picker in step with the week being viewed. */
   var jump = $("weekJumpDate");
   if (jump) jump.value = currentWeekStart;
@@ -884,6 +887,9 @@ $("randomizeBtn").addEventListener("click", randomizeWeek);
 $("prevWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(currentWeekStart, -7)); });
 $("nextWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(currentWeekStart, 7)); });
 $("pastWeeksSelect").addEventListener("change", function () { switchWeek($("pastWeeksSelect").value); });
+$("groceryPrevWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(currentWeekStart, -7)); });
+$("groceryNextWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(currentWeekStart, 7)); });
+$("groceryWeeksSelect").addEventListener("change", function () { switchWeek($("groceryWeeksSelect").value); });
 $("weekJumpDate").addEventListener("change", function () {
   var v = $("weekJumpDate").value;
   if (!v) return;
@@ -895,6 +901,15 @@ $("clearWeekBtn").addEventListener("click", function () {
   weekState = defaultState();
   saveWeek(); renderPlanner(); renderGrocery();
   toast("Week cleared");
+});
+/* Clear just this week's list: uncheck everything and remove items added
+   by hand. The week's meals stay, so the recipe list rebuilds intact. */
+$("clearListBtn").addEventListener("click", function () {
+  weekState.checked = [];
+  weekState.extras = [];
+  saveWeek();
+  renderGrocery();
+  toast("List cleared — checks and added items reset");
 });
 $("copyWeekImageBtn").addEventListener("click", copyWeekImage);
 $("copyListBtn").addEventListener("click", function () {
