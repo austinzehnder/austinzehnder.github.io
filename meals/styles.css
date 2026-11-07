@@ -111,15 +111,22 @@ main h2 { font-size: 20px; letter-spacing: -0.02em; margin: 0 0 8px; }
 
 /* Filters */
 .filters {
-  display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;
 }
 .filters input, .filters select {
   background: var(--card); color: var(--text);
   border: 1px solid var(--line); border-radius: var(--radius-sm);
-  padding: 11px 14px; font-size: 15px;
+  padding: 8px 12px; font-size: 14px; color-scheme: dark;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .filters input { flex: 1 1 200px; }
+.filters select {
+  flex: 0 0 auto; max-width: 100%; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23a39e93' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
 .filters input:focus, .filters select:focus {
   border-color: var(--accent); outline: none;
   box-shadow: 0 0 0 3px var(--accent-ring);
@@ -330,6 +337,8 @@ button.btn.small { padding: 4px 10px; font-size: 15px; }
   .btn-row input[type="text"], .filters input, .filters select {
     font-size: 16px; min-height: 44px;
   }
+  /* Filter controls stay slimmer than the 44px buttons: still easy to tap. */
+  .filters input, .filters select { min-height: 40px; }
   .filters input { flex-basis: 100%; }
   .btn-row input[type="text"] { flex-basis: 100%; }
 
