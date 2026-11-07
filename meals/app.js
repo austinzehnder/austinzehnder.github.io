@@ -402,7 +402,7 @@ function renderPlanner() {
     var label = assignmentLabel(a);
     var time = "";
     if (a.kind === "recipe") { var r = recipeById(a.id); time = r ? r.timeLabel : ""; }
-    return '<div class="day-card' + (a.kind === "recipe" ? ' data-recipe-card="' + a.id + '" style="cursor:pointer" title="Click to view recipe"' : "") + '><img src="' + assignmentImg(a) + '" alt="' + esc(label) + '" onerror="imgFallback(this)">'
+    return '<div class="day-card' + (a.kind === "recipe" ? '" data-recipe-card="' + a.id + '" style="cursor:pointer" title="Click to view recipe"' : '"') + '><img src="' + assignmentImg(a) + '" alt="' + esc(label) + '" onerror="imgFallback(this)">'
       + '<div class="day-body"><h3>' + dateStr + '</h3>'
       + '<div class="dish">' + esc(label) + '</div>'
       + (time ? '<div class="meta">' + esc(time) + '</div>' : "")
