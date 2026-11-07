@@ -187,6 +187,10 @@ async function renderWeekNav() {
   /* Keep the week picker in step with the week being viewed. */
   var jump = $("weekJumpDate");
   if (jump) jump.value = jump.type === "week" ? isoWeekString(currentWeekStart) : currentWeekStart;
+  /* Grocery tab: show which week's list is being viewed. */
+  var gLabel = $("groceryWeekLabel");
+  if (gLabel) gLabel.textContent = weekLabel(currentWeekStart)
+    + (currentWeekStart === thisWeekStart() ? " (this week)" : "");
 }
 
 /* ---------------- helpers ---------------- */
