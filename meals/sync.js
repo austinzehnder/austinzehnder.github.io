@@ -183,10 +183,13 @@
 
   function listWeeks() {
     return remoteList().then(function (remote) {
-      var merged = {};
-      readIndex().forEach(function (w) { merged[w] = true; });
-      remote.forEach(function (w) { merged[w] = true; });
-      return Object.keys(merged).sort();
+      /* Prune the local index to what actually exists remotely, so stale
+         local keys (e.g. deleted test weeks) stop showing up as saved weeks.
+         Offline saves re-add themselves to the index on their next save. */
+      var remoteSet = {};
+      remote.forEach(function (w) { remoteSet[w] = true; });
+      writeIndex(readIndex().filter(function (w) { return remoteSet[w]; }));
+      return remote.slice().sort();
     }).catch(function () {
       return readIndex().sort();
     });

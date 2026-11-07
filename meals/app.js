@@ -532,11 +532,14 @@ function combinedGrocery() {
   });
   return order.map(function (key) {
     var g = groups[key];
+    /* Amount-less lines (notes like "if she's not flexing: …") are already
+       the whole item — appending the key after them duplicates the text. */
+    var hasAmount = g.amounts.some(function (a) { return a.value !== null; });
     var text = g.amounts.map(function (a) {
       if (a.value !== null) return (formatAmount(a.value) + (a.unit ? " " + a.unit : "")).trim();
       return a.raw;
     }).join(" + ");
-    return { key: key, label: text + " " + key };
+    return { key: key, label: hasAmount ? text + " " + key : text };
   });
 }
 
