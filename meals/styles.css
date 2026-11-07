@@ -196,6 +196,12 @@ main h2 { font-size: 20px; letter-spacing: -0.02em; margin: 0 0 8px; }
 .day-body .dish { font-size: 17px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.3; }
 .day-body .empty-note { color: var(--muted); font-style: italic; font-size: 14px; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+/* Planner actions: Randomize takes its own full row, Copy + Clear share the
+   next row equally — no ragged wrap. Slimmer than the default buttons. */
+.btn-row.actions-row { gap: 8px; }
+.btn-row.actions-row #randomizeBtn { flex: 1 1 100%; }
+.btn-row.actions-row #copyWeekImageBtn, .btn-row.actions-row #clearWeekBtn { flex: 1 1 0; min-width: 0; }
+.btn-row.actions-row .btn { padding: 9px 14px; font-size: 14px; min-height: 40px; }
 button.btn {
   background: var(--accent); color: var(--accent-ink); border: none;
   border-radius: var(--radius-sm); padding: 11px 18px; font-size: 15px;
