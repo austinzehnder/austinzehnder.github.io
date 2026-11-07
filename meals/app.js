@@ -85,8 +85,8 @@ var RECIPES = [
 
 var DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 var SPECIALS = {
-  leftovers: { name: "Leftovers", img: "assets/leftovers.jpg" },
-  "eating-out": { name: "Eating Out", img: "assets/eating-out.jpg" }
+  leftovers: { name: "Leftovers", img: "assets/leftovers.jpg?v=2" },
+  "eating-out": { name: "Eating Out", img: "assets/eating-out.jpg?v=2" }
 };
 var EFFORT_ORDER = { easy: 0, medium: 1, involved: 2 };
 
