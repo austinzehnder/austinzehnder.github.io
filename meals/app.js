@@ -205,6 +205,15 @@ function assignmentImg(a) {
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
+/* If a card photo fails to load, swap in a same-size emoji tile instead of
+   hiding the image and leaving a void (seen on the Eating Out card). */
+function imgFallback(img) {
+  img.onerror = null;
+  var d = document.createElement("div");
+  d.className = "img-fallback";
+  d.textContent = img.alt === "Eating Out" ? "🍽️" : img.alt === "Leftovers" ? "🥡" : "🍲";
+  img.replaceWith(d);
+}
 var toastTimer = null;
 function toast(msg) {
   var t = $("toast");
@@ -252,7 +261,7 @@ function renderRecipes() {
   $("noResults").style.display = list.length ? "none" : "block";
   grid.innerHTML = list.map(function (r) {
     return '<div class="card" data-id="' + r.id + '">'
-      + '<img src="' + r.img + '" alt="' + esc(r.name) + '" loading="lazy" onerror="this.style.display=\'none\'">'
+      + '<img src="' + r.img + '" alt="' + esc(r.name) + '" loading="lazy" onerror="imgFallback(this)">'
       + '<div class="card-body"><h3>' + esc(r.name) + '</h3>'
       + '<div class="meta">' + esc(r.cuisineLabel) + ' · ' + esc(r.timeLabel) + '</div>'
       + '<span class="badge ' + r.effort + '">' + (r.effort === "easy" ? "Easy" : r.effort === "medium" ? "Medium" : "Involved") + '</span>'
@@ -393,7 +402,7 @@ function renderPlanner() {
     var label = assignmentLabel(a);
     var time = "";
     if (a.kind === "recipe") { var r = recipeById(a.id); time = r ? r.timeLabel : ""; }
-    return '<div class="day-card' + (a.kind === "recipe" ? ' data-recipe-card="' + a.id + '" style="cursor:pointer" title="Click to view recipe"' : "") + '><img src="' + assignmentImg(a) + '" alt="' + esc(label) + '" onerror="this.style.display=\'none\'">'
+    return '<div class="day-card' + (a.kind === "recipe" ? ' data-recipe-card="' + a.id + '" style="cursor:pointer" title="Click to view recipe"' : "") + '><img src="' + assignmentImg(a) + '" alt="' + esc(label) + '" onerror="imgFallback(this)">'
       + '<div class="day-body"><h3>' + dateStr + '</h3>'
       + '<div class="dish">' + esc(label) + '</div>'
       + (time ? '<div class="meta">' + esc(time) + '</div>' : "")
