@@ -43,6 +43,7 @@ h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:tex
 .stat b{font-size:1.6rem;display:block}
 .stat span{color:var(--muted);font-size:.95rem}
 h2{font-size:1.9rem;letter-spacing:-.02em;margin:56px 0 8px}
+h1.page{font-size:1.9rem;letter-spacing:-.02em;margin:56px 0 8px}
 .lead{color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:20px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;transition:transform .15s,border-color .15s}
