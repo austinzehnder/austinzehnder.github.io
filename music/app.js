@@ -12,6 +12,7 @@
   var fontSize = parseInt(localStorage.getItem('guitar-tabs-font') || '16', 10);
   var fitOn = localStorage.getItem('guitar-tabs-fit') !== '0';
   var scrollTimer = null;
+  var hintTimer = null;
   var scrollOn = false;
   var currentSongLines = [];
   var songPages = [];
@@ -154,8 +155,9 @@
     $('songList').innerHTML = list.map(function (s) {
       var capo = s.capo ? '<span class="capo-badge">Capo ' + esc(s.capo) + '</span>'
         : '<span class="capo-badge none">No capo</span>';
+      var tun = (s.tuning && s.tuning !== 'Standard') ? '<span class="tuning-badge">' + esc(s.tuning) + '</span>' : '';
       return '<button class="song-row" type="button" data-id="' + esc(s.id) + '">' +
-        '<span><b>' + esc(s.title) + '</b><small>' + esc(s.artist) + (s.key ? ' · Key ' + esc(s.key) : '') + '</small></span>' + capo + '</button>';
+        '<span><b>' + esc(s.title) + '</b><small>' + esc(s.artist) + (s.key ? ' · Key ' + esc(s.key) : '') + '</small></span>' + capo + tun + '</button>';
     }).join('');
     document.querySelectorAll('.song-row').forEach(function (btn) {
       btn.addEventListener('click', function () { openSong(btn.getAttribute('data-id')); });
@@ -170,6 +172,7 @@
     var capo = s.capo ? '<span class="capo-badge">Capo ' + esc(s.capo) + '</span>' : '<span class="capo-badge none">No capo</span>';
     var chips = [];
     if (s.key) chips.push('Key ' + esc(s.key));
+    chips.push('Tuning: ' + esc(s.tuning || 'Standard'));
     if (s.chords && s.chords.length) chips.push('Chords: ' + esc(s.chords.join(', ')));
     if (s.source) chips.push(esc(s.source));
     $('songDetail').innerHTML =
@@ -253,6 +256,10 @@
     performIds = ids; performIdx = 0; performPageIdx = 0;
     $('perform').hidden = false;
     document.body.style.overflow = 'hidden';
+    var hint = $('tapHint');
+    hint.classList.remove('fade');
+    if (hintTimer) clearTimeout(hintTimer);
+    hintTimer = setTimeout(function () { hint.classList.add('fade'); }, 5000);
     renderPerform();
   }
   function renderPerform() {
@@ -274,7 +281,8 @@
     var p = performPages[performPageIdx];
     $('performProgress').textContent = 'Song ' + (performIdx + 1) + ' of ' + performIds.length +
       (performPages.length > 1 ? ' · Page ' + (performPageIdx + 1) + ' of ' + performPages.length : '');
-    $('performTitle').textContent = s.title + ' — ' + s.artist + (s.capo ? '  ·  Capo ' + s.capo : '');
+    $('performTitle').textContent = s.title + ' — ' + s.artist + (s.capo ? '  ·  Capo ' + s.capo : '') +
+      ((s.tuning && s.tuning !== 'Standard') ? '  ·  ' + s.tuning : '');
     bodyEl.innerHTML = '<pre>' + esc(lines.slice(p.start, p.end).join('\n')) + '</pre>';
     bodyEl.scrollTop = 0;
     $('prevBtn').disabled = performIdx === 0 && performPageIdx === 0;
@@ -348,6 +356,7 @@
       id: slug(title + '-' + artist) + '-' + Date.now().toString(36),
       title: title, artist: artist,
       capo: $('fCapo').value.trim(), key: $('fKey').value.trim(),
+      tuning: $('fTuning').value.trim() || 'Standard',
       chords: $('fChords').value.split(',').map(function (c) { return c.trim(); }).filter(Boolean),
       body: body, source: 'Added in browser'
     };
@@ -370,6 +379,12 @@
     else stopPerform();
   });
   $('exitPerformBtn').addEventListener('click', stopPerform);
+  /* Tap or click the chart area: left half = previous page, right half = next page.
+   * Reuses the Prev/Next buttons, so page-then-song order and Finish stay identical. */
+  $('performBody').addEventListener('click', function (e) {
+    if (e.target.closest && e.target.closest('button, a, input, select, textarea')) return;
+    if (e.clientX < window.innerWidth / 2) $('prevBtn').click(); else $('nextBtn').click();
+  });
   $('fontDownBtn').addEventListener('click', function () { fontSize = Math.max(12, fontSize - 2); localStorage.setItem('guitar-tabs-font', String(fontSize)); applyFont(); refitCurrent(); });
   $('fontUpBtn').addEventListener('click', function () { fontSize = Math.min(36, fontSize + 2); localStorage.setItem('guitar-tabs-font', String(fontSize)); applyFont(); refitCurrent(); });
   $('scrollBtn').addEventListener('click', toggleScroll);

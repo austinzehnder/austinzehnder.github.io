@@ -10,10 +10,8 @@ Drive, so he uploaded the zip in 3 chunks instead. Drive browser session closed.
 Importer: import/import_docx.py (paragraph-preserving, apostrophes restored
 from filename underscores, capo extracted, chords collected). 56 songs have a
 capo, 0 empty bodies. Dylan docx matches the example PDF (Capo IV).
-Still pending: pull full Ultimate Guitar tab content for the 97 new songs (URLs
-at import/ultimate-guitar-urls.txt; signed-out fetch returns metadata only, so
-pull must go through the signed-in browser in batches) and create the two
-Supabase tables below. Rocket Man: Austin chose the My Morning Jacket version.
+Still pending: create the two Supabase tables below. Rocket Man: Austin chose the My Morning Jacket version.
+UG pull COMPLETE 2026-11-06 ~14:26 PST: all 97 new songs pulled in 10 valid batches (1-3, 5-11), catalogue 282 locally (185 Drive + 97 UG), 0 empty, NOT yet pushed live (live still shows 185). Batch 4 was sent with a WRONG list (songs not in Austin's favorites) — 6 were pulled but NOT imported; see import/ug-batch4-NOT-FAVORITES.txt. Box Of Rain (urls line 11) was skipped by batch 2 and led the corrected batch 5. Batch order followed ultimate-guitar-urls.txt lines: 1 = 1-10, 2 = 12-21, 3 = 22-31, 5 = Box Of Rain + 32-40, 6 = 41-50, 7 = 51-60, 8 = 61-70, 9 = 71-80, 10 = 81-90, 11 = 91-97. UG browser session closed after batch 11.
 Fit to page (2026-11-06): opening a song shrinks the chart to fit the screen;
 longer songs split into pages with Prev/Next (chord lines never split from
 their lyric line). Same paging in Perform mode; Next advances pages, then songs.
@@ -27,7 +25,7 @@ from the homepage, NOT in sitemap.xml.
 - `index.html` — Catalogue / Song / Set Lists / Add Song views + Perform overlay
 - `styles.css` — dark default, light theme via `data-theme="light"`, remembered
 - `app.js` — live per-character search (title or artist), song view, set lists,
-  perform mode (Prev/Next, Song X of Y, keyboard ←/→, Esc to exit), font size,
+  perform mode (Prev/Next, Song X of Y, keyboard ←/→, Esc to exit, tap/click left half = back a page, right half = next page), font size,
   auto-scroll, add-song form
 - `sync.js` — localStorage mirror + Supabase shared backend (same pattern as meals)
 - `songs.json` — seed catalogue. Currently 1 song:
@@ -40,7 +38,8 @@ from the homepage, NOT in sitemap.xml.
 - Click a song to view its chart; capo shown as a prominent badge
 - Set lists: create named lists, add songs (from song page or set-list page),
   reorder ↑/↓, remove, delete list, perform a whole set
-- Perform mode: full-screen, Prev/Next, progress, font A−/A+, auto-scroll
+- Perform mode: full-screen, Prev/Next, progress, font A−/A+, auto-scroll, tap/click left half of the chart to go back a page, right half to go forward (hint shows for 5s on entry); non-standard tuning shown in the perform title
+- Tuning: every song carries a `tuning` field (extracted from the chart text where stated, else "Standard"). Song view shows a "Tuning: X" chip on every song; non-standard tunings get an amber badge in the catalogue. 7 non-standard in the catalogue: Golden (Open Em), Harvest Moon (Drop D), If You Know Me Intro (C# standard, high E to B), Its Been Awhile (Eb), Northern Attitude (Open D), Not Dead Yet (Open D / Standard — chart offers both), On Track (D standard). Extraction lives in `import/tuning.py`, wired into both importers and the Add Song form. Capos are stored as digits — roman numerals from the Drive docs (I–VIII, 50 songs) were normalized.
   toggle, dark/light toggle
 - Add a song in the browser: title, artist, capo, key, chords, chart text
 
