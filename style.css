@@ -11,8 +11,9 @@ nav a{margin-left:18px;color:var(--muted);text-decoration:none;font-weight:600}
 nav a:hover{color:var(--text)}
 .hero{padding:72px 0 48px;background:radial-gradient(600px 300px at 20% 0%,rgba(45,212,191,.25),transparent 60%),radial-gradient(600px 300px at 90% 20%,rgba(96,165,250,.25),transparent 60%)}
 .hero-photo{width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;border-radius:18px;border:1px solid var(--line);margin-top:32px;display:block}
-.hero-photo-wrap{position:relative;margin-top:32px}
-.hero-photo-wrap .hero-photo{margin-top:0}
+.hero-photo-wrap{position:relative;margin:32px auto 0;max-width:440px}
+.hero-photo-wrap .hero-photo{margin-top:0;aspect-ratio:auto}
+.about-photo{width:100%;max-width:640px;height:auto;border-radius:18px;border:1px solid var(--line);display:block;margin:24px 0 8px}
 .hero-logo-badge{position:absolute;top:16px;left:16px;width:76px;height:76px;border-radius:50%;border:3px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,.35);display:block}
 @media(max-width:600px){.hero-logo-badge{width:54px;height:54px;top:10px;left:10px;border-width:2px}}
 .profile-photo{width:180px;height:220px;object-fit:cover;object-position:top;border-radius:18px;border:1px solid var(--line);display:block;margin:20px 0 8px}
