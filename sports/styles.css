@@ -1,18 +1,18 @@
 .hero-sports{padding:32px 0 16px}.hero-sports h1{font-size:clamp(2.2rem,7vw,3.4rem);margin:.2em 0;line-height:1.05}
-.tabs{display:flex;gap:8px;margin:24px 0}.tab{padding:10px 20px;border-radius:999px;border:1px solid #22314f;background:#0e1526;color:#eef2ff;cursor:pointer;font-size:1rem}.tab.active{background:#2dd4bf;color:#06251f;border-color:#2dd4bf;font-weight:700}
+.tabs{display:flex;gap:8px;margin:24px 0}.tab{padding:10px 20px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;font-size:1rem}.tab.active{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:700}
 h2{margin-top:40px}
 .rank-list,.ap-list{display:grid;gap:8px}
-.rank-row,.ap-row{display:grid;grid-template-columns:44px 48px 1fr auto;gap:14px;align-items:center;padding:14px 4px;border-bottom:1px solid #1e2a44}
+.rank-row,.ap-row{display:grid;grid-template-columns:44px 48px 1fr auto;gap:14px;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line)}
 .rank-row .pos,.ap-row .pos{font-size:1.35rem;font-weight:800}
 .rank-row img,.ap-row img{width:44px;height:44px;object-fit:contain}
-.rank-row .move,.ap-row .move{font-size:.85rem;color:#a7b3cc;margin-top:2px}
-.blurb{grid-column:2/-1;color:#c6d0e4;font-size:.95rem;line-height:1.5;margin:4px 0 0}
+.rank-row .move,.ap-row .move{font-size:.85rem;color:var(--muted);margin-top:2px}
+.blurb{grid-column:2/-1;color:var(--muted);font-size:.95rem;line-height:1.5;margin:4px 0 0}
 .team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-.team-card{background:#0e1526;border:1px solid #1e2a44;border-radius:14px;padding:16px 12px;text-align:center;cursor:pointer}
+.team-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 12px;text-align:center;cursor:pointer}
 .team-card img{width:60px;height:60px;object-fit:contain}
 .team-card b{display:block;margin-top:8px;font-size:.95rem}
-.team-card span{color:#a7b3cc;font-size:.85rem}
-#teamSearch{width:100%;padding:12px;border-radius:10px;border:1px solid #22314f;background:#0e1526;color:#eef2ff;font-size:1rem}
-#ballotList li{display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid #1e2a44}
+.team-card span{color:var(--muted);font-size:.85rem}
+#teamSearch{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:1rem}
+#ballotList li{display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
 .card{padding:20px}
 @media(max-width:560px){.rank-row,.ap-row{grid-template-columns:36px 40px 1fr}.rank-row .points,.ap-row .points{display:none}.rank-row img,.ap-row img{width:38px;height:38px}.blurb{grid-column:1/-1}}
