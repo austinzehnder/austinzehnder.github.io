@@ -68,7 +68,7 @@ main>section+section{margin-top:112px}
 .timeline::before{content:"";position:absolute;left:4px;top:10px;bottom:10px;width:1px;background:var(--line)}
 .timeline li{position:relative;padding:0 0 28px 16px}
 .timeline li:last-child{padding-bottom:0}
-.timeline li::before{content:"";position:absolute;left:-20px;top:7px;width:9px;height:9px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.timeline li::before{content:"";position:absolute;left:-20px;top:7px;width:9px;height:9px;border-radius:50%;background:var(--bg);border:1px solid var(--muted)}
 .timeline li:first-child::before{background:var(--accent);border-color:var(--accent)}
 .timeline li strong{color:var(--text)}
 .timeline li span{display:block;color:var(--muted)}
