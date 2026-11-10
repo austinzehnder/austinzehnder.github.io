@@ -88,7 +88,7 @@ ul.clean li strong{color:var(--text)}
 .book-row .author{color:var(--accent);font-weight:700;margin:0 0 4px}
 .book-row p{color:var(--muted);margin:0}
 .chart{margin:24px 0}
-.chart svg{width:100%;height:auto;display:block}
+.chart svg{width:100%;height:auto;display:block;max-width:560px}
 .chart figcaption{color:var(--muted);margin-top:10px}
 .h1-muted{color:var(--muted)}
 .volunteer-note{margin-top:32px}
