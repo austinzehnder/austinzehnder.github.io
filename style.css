@@ -90,8 +90,12 @@ ul.clean li strong{color:var(--text)}
 .chart{margin:24px 0}
 .chart svg{width:100%;height:auto;display:block}
 .chart figcaption{color:var(--muted);margin-top:10px}
+.h1-muted{color:var(--muted)}
+.volunteer-note{margin-top:32px}
+.price{float:right;color:var(--muted);font-weight:400}
+.not-found{text-align:center;padding:96px 24px}
+.zehndra-logo{max-width:360px;width:100%;height:auto;display:block}
 .volunteer-photo{width:100%;height:auto;border-radius:14px;display:block}
-.photo-credit{color:var(--muted);margin-top:8px}
 label{display:block;margin:14px 0 4px;font-weight:600}
 input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text);font:inherit}
 input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
