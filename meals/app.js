@@ -574,7 +574,7 @@ function parseAmount(str) {
 }
 
 function formatAmount(n) {
-  var fracs = [[0.25, "1/4"], [1 / 3, "1/3"], [0.5, "1/2"], [2 / 3, "2/3"], [0.75, "3/4"]];
+  var fracs = [[0.25, "1/4"], [1 / 3, "1/3"], [0.5, "1/2"], [2 / 3, "2/3"], [0.75, "3/4"], [5 / 6, "5/6"]];
   var whole = Math.floor(n + 1e-6);
   var rem = n - whole;
   for (var i = 0; i < fracs.length; i++) {
@@ -600,6 +600,32 @@ function splitLine(line) {
   return out;
 }
 
+/* Units are stored singular ("cup", "clove") so "1 clove" and "2 cloves"
+   of the same item add up instead of listing twice. Abbreviations that
+   never take an "s" (tbsp, tsp, oz) are left alone when pluralizing. */
+var UNIT_SINGULAR = { cups: "cup", lbs: "lb", cloves: "clove", cans: "can", blocks: "block", bunches: "bunch", slices: "slice", stalks: "stalk", heads: "head", pieces: "piece" };
+var PLURAL_UNITS = { cup: "cups", clove: "cloves", can: "cans", block: "blocks", bunch: "bunches", slice: "slices", stalk: "stalks", head: "heads", piece: "pieces", lb: "lbs" };
+function pluralUnit(unit, value) {
+  if (value > 1 && PLURAL_UNITS[unit]) return PLURAL_UNITS[unit];
+  return unit;
+}
+
+/* Words that describe the same purchase in different recipes — strip them
+   (plus "florets" and a "side:" prefix) so one item groups into one line
+   instead of splitting into "broccoli florets" / "small broccoli florets" /
+   "side: steamed broccoli". "crushed" is deliberately NOT stripped: crushed
+   vs diced vs whole tomatoes are different cans. */
+var NORM_ADJ = ["small", "large", "medium", "baby", "fresh", "dried", "ground", "grated", "finely", "shredded", "chopped", "diced", "minced", "sliced", "steamed", "roasted", "day-old", "cooked", "jasmine", "russet", "heavy", "sharp", "crumbled"];
+function normKey(item) {
+  var s = item.replace(/^side:\s*/, "");
+  var words = s.split(" ");
+  while (words.length > 1 && NORM_ADJ.indexOf(words[0]) !== -1) words.shift();
+  s = words.join(" ").replace(/\bflorets\b/g, "").replace(/\s+/g, " ").trim();
+  if (s === "russet" || s === "russets") s = "potato";
+  if (/(^|\s)potatoes$/.test(s)) s = s.replace(/potatoes$/, "potato");
+  return s || item;
+}
+
 function parsePiece(piece) {
   var amount = parseAmount(piece);
   var rest = piece.replace(/^(\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?)\s*/, "");
@@ -609,9 +635,10 @@ function parsePiece(piece) {
     unit = first.toLowerCase();
     rest = rest.slice(first.length).trim();
   }
-  var item = rest.replace(/\([^)]*\)/g, "").replace(/,.*$/, "").trim().toLowerCase().replace(/\s+/g, " ");
+  if (UNIT_SINGULAR[unit]) unit = UNIT_SINGULAR[unit];
+  var item = rest.replace(/\([^)]*\)/g, "").replace(/[()]/g, "").replace(/,.*$/, "").trim().toLowerCase().replace(/\s+/g, " ");
   if (!item) item = piece.toLowerCase();
-  return { amount: amount, unit: unit, item: item, raw: piece };
+  return { amount: amount, unit: unit, item: normKey(item), display: item, raw: piece.replace(/[()]/g, "") };
 }
 
 function combinedGrocery() {
@@ -621,8 +648,9 @@ function combinedGrocery() {
     r.ingredients.forEach(function (line) {
       splitLine(line).forEach(function (piece) {
         var p = parsePiece(piece);
-        if (!groups[p.item]) { groups[p.item] = { item: p.item, amounts: [] }; order.push(p.item); }
+        if (!groups[p.item]) { groups[p.item] = { item: p.item, display: p.display, displays: [p.display], amounts: [] }; order.push(p.item); }
         var g = groups[p.item];
+        if (g.displays.indexOf(p.display) === -1) g.displays.push(p.display);
         var merged = false;
         for (var i = 0; i < g.amounts.length; i++) {
           var a = g.amounts[i];
@@ -636,14 +664,23 @@ function combinedGrocery() {
   });
   return order.map(function (key) {
     var g = groups[key];
-    /* Amount-less lines (notes like "if she's not flexing: …") are already
-       the whole item — appending the key after them duplicates the text. */
-    var hasAmount = g.amounts.some(function (a) { return a.value !== null; });
-    var text = g.amounts.map(function (a) {
-      if (a.value !== null) return (formatAmount(a.value) + (a.unit ? " " + a.unit : "")).trim();
-      return a.raw;
-    }).join(" + ");
-    return { key: key, label: hasAmount ? text + " " + key : text };
+    /* Amounts first with the item name ("5 cups broccoli florets"), then
+       any amount-less notes ("+ Side: steamed broccoli") — the name
+       belongs with its amounts, not tacked on after a note. Identical
+       notes show once. */
+    var amountParts = g.amounts.filter(function (a) { return a.value !== null; })
+      .map(function (a) { return formatAmount(a.value) + (a.unit ? " " + pluralUnit(a.unit, a.value) : ""); });
+    var rawParts = [];
+    g.amounts.forEach(function (a) {
+      if (a.value === null && rawParts.indexOf(a.raw) === -1) rawParts.push(a.raw);
+    });
+    /* Prefer a plain name for the label ("rice") over a stateful one
+       ("day-old cooked rice") when the same item was written both ways. */
+    var display = g.displays.filter(function (d) { return NORM_ADJ.indexOf(d.split(" ")[0]) === -1; })[0] || g.displays[0];
+    var text = amountParts.join(" + ");
+    if (amountParts.length) text += " " + display;
+    if (rawParts.length) text += (text ? " + " : "") + rawParts.join(" + ");
+    return { key: key, label: text };
   });
 }
 
@@ -672,7 +709,7 @@ function sectionForItem(item) {
   if (/\b(milk|cheese|butter|cream|yogurt|yoghurt|eggs?|paneer|cotija|parmesan|mozzarella|cheddar|feta)\b/.test(s)) return "Dairy & Eggs";
   if (/\b(bread|naan|tortillas?|buns?|rolls?|baguette|pita)\b/.test(s)) return "Bakery & Bread";
   if (/\b(spinach|broccoli|kale|avocado|cucumber|tomato|onion|garlic|ginger|lemon|lime|carrot|potato|asparagus|zucchini|green beans|corn|mushroom|basil|cilantro|parsley|lettuce|greens|tofu|apple|banana|mango|herb)\b/.test(s)) return "Produce";
-  if (/\b(rice|pasta|noodle|udon|ramen|gnocchi|couscous|polenta|flour|oil|sauce|soy|miso|vinegar|spice|cumin|paprika|chili|peppercorns?|curry|paste|sugar|salt|honey|peanuts?|cashews?|almonds?|sesame|stock|broth|tamarind|gochujang|doubanjiang)\b/.test(s)) return "Pantry";
+  if (/\b(rice|pasta|noodle|macaroni|udon|ramen|gnocchi|couscous|polenta|flour|oil|sauce|soy|miso|vinegar|spice|cumin|paprika|chili|peppercorns?|curry|paste|sugar|salt|honey|peanuts?|cashews?|almonds?|sesame|stock|broth|tamarind|gochujang|doubanjiang|oregano)\b/.test(s)) return "Pantry";
   return "Other";
 }
 
