@@ -167,15 +167,25 @@ async function switchWeek(weekStart) {
 
 async function renderWeekNav() {
   /* "Week of: [Monday date]" on the planner and grocery tabs, kept in step
-     with the week being viewed. The old week picker showed an ISO week
-     number like "Week 47, 2026" — meaningless to read — so it is gone;
-     Previous/Next are now the way to move between weeks. */
+     with the week being viewed. The line is also the way back: when viewing
+     any other week it reads "· back to this week" and tapping it jumps to
+     the current week. (The old week picker showed an ISO week number like
+     "Week 47, 2026" — meaningless to read — so it is gone; Previous/Next
+     move one week at a time.) */
+  var isCurrent = currentWeekStart === thisWeekStart();
   var text = weekLabel(currentWeekStart)
-    + (currentWeekStart === thisWeekStart() ? " (this week)" : "");
-  var pLabel = $("plannerWeekLabel");
-  if (pLabel) pLabel.textContent = text;
-  var gLabel = $("groceryWeekLabel");
-  if (gLabel) gLabel.textContent = text;
+    + (isCurrent ? " (this week)" : " · back to this week");
+  [ $("plannerWeekLabel"), $("groceryWeekLabel") ].forEach(function (el) {
+    if (!el) return;
+    el.textContent = text;
+    el.classList.toggle("away", !isCurrent);
+    el.disabled = isCurrent;
+  });
+}
+
+/* Jump back to the current week from either tab's "Week of:" line. */
+function goToCurrentWeek() {
+  if (currentWeekStart !== thisWeekStart()) switchWeek(thisWeekStart());
 }
 
 /* ---------------- helpers ---------------- */
@@ -894,6 +904,8 @@ $("prevWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(c
 $("nextWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(currentWeekStart, 7)); });
 $("groceryPrevWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(currentWeekStart, -7)); });
 $("groceryNextWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(currentWeekStart, 7)); });
+$("plannerWeekLabel").addEventListener("click", goToCurrentWeek);
+$("groceryWeekLabel").addEventListener("click", goToCurrentWeek);
 $("clearWeekBtn").addEventListener("click", function () {
   weekState = defaultState();
   saveWeek(); renderPlanner(); renderGrocery();

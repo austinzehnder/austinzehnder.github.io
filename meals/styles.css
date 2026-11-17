@@ -204,7 +204,11 @@ main h2 { font-size: 20px; letter-spacing: -0.02em; margin: 0 0 8px; }
 .btn-row.actions-row .btn { padding: 9px 14px; font-size: 14px; min-height: 40px; }
 /* Grocery list: which week is being viewed, and short action buttons that
    share one row equally. */
-.week-of-label { color: var(--muted); font-size: 13px; letter-spacing: 0.02em; margin: -8px 0 12px; }
+.week-of-label { display: block; background: none; border: 0; padding: 0; font: inherit; text-align: left; color: var(--muted); font-size: 13px; letter-spacing: 0.02em; margin: -8px 0 12px; }
+.week-of-label:disabled { opacity: 1; cursor: default; }
+/* Viewing another week: the line is a link back to the current week. */
+.week-of-label.away { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.week-of-label.away:hover { color: var(--text); }
 .btn-row.grocery-actions .btn { flex: 1 1 0; padding: 9px 14px; font-size: 14px; min-height: 40px; }
 button.btn {
   background: var(--accent); color: var(--accent-ink); border: none;
