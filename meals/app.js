@@ -397,6 +397,9 @@ function showDayPicker() {
       toast(r.name + " added to " + day);
     });
   });
+  // The picker sits at the bottom of the modal, below the fold on long
+  // recipes — scroll it into view so the days can be picked right away.
+  picker.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 /* ---------------- planner: add / change from the planner tab ---------------- */
