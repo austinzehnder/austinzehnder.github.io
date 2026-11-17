@@ -5,6 +5,8 @@
  *   WeekSync.saveWeek(weekStart, state) — persist one week's weekState
  *   WeekSync.loadWeek(weekStart)        — async, that week's weekState or null
  *   WeekSync.listWeeks()                — async, sorted list of saved week-starts
+ *   WeekSync.loadAllWeekStates()        — async, every saved week's {week, state}
+ *     (one fetch; used to count how often each recipe has been planned)
  *
  * weekStart is an ISO date string (YYYY-MM-DD) for the Monday of the week.
  * Every week is its own record, keyed by week-start — past weeks are never
@@ -195,6 +197,20 @@
     });
   }
 
+  /* Every saved week's state in one fetch, for the popularity tally.
+     Offline it falls back to the local mirror. */
+  function loadAllWeekStates() {
+    var url = SUPABASE_URL + '/rest/v1/weeks?select=week_start,state&order=week_start.asc';
+    return fetchWithTimeout(url, { headers: headers() }, 8000).then(function (r) {
+      if (!r.ok) throw new Error('all ' + r.status);
+      return r.json();
+    }).then(function (rows) {
+      return (rows || []).map(function (r) { return { week: r.week_start, state: r.state }; }).filter(function (x) { return x.state; });
+    }).catch(function () {
+      return readIndex().map(function (w) { return { week: w, state: localRead(w) }; }).filter(function (x) { return x.state; });
+    });
+  }
+
   function currentMondayISO() {
     var now = new Date();
     var d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -205,6 +221,7 @@
 
   window.WeekSync = {
     saveWeek: saveWeek, loadWeek: loadWeek, listWeeks: listWeeks,
+    loadAllWeekStates: loadAllWeekStates,
     loadCustomRecipes: loadCustomRecipes,
     getCalendarFeedUrl: getCalendarFeedUrl, setCalendarFeedUrl: setCalendarFeedUrl
   };

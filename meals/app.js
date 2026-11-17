@@ -191,7 +191,9 @@ async function undoWeek() {
   clearUndoSnapshot();
   if (snap.week !== currentWeekStart) await switchWeek(snap.week);
   weekState = JSON.parse(JSON.stringify(snap.state));
-  saveWeek(); renderPlanner(); renderGrocery();
+  saveWeek();
+  refreshPopularityAndRerender();
+  renderPlanner(); renderGrocery();
   toast("Undone — week restored");
 }
 
@@ -270,6 +272,40 @@ function toast(msg) {
 
 var CUISINE_ORDER = ["Japanese", "Chinese", "Thai", "Korean", "Indian", "Mexican", "Italian", "American"];
 
+/* ---------------- popularity ---------------- */
+/* How often each recipe has been planned, counted across every saved week
+   (both partners' picks). The Recipes tab can sort by it: most-picked first,
+   ties broken A–Z. Counts refresh whenever the Recipes tab is opened, when
+   Popularity is picked as the sort, and after any change to a week's meals. */
+var popularityCounts = {};
+function tallyWeekState(st, counts) {
+  if (!st || !st.assignments) return;
+  Object.keys(st.assignments).forEach(function (day) {
+    var a = st.assignments[day];
+    if (a && a.kind === "recipe" && a.id !== undefined && a.id !== null) {
+      var k = String(a.id);
+      counts[k] = (counts[k] || 0) + 1;
+    }
+  });
+}
+async function refreshPopularity() {
+  var counts = {};
+  var rows = [];
+  try { rows = await WeekSync.loadAllWeekStates(); } catch (e) { rows = []; }
+  rows.forEach(function (row) {
+    if (row.week === currentWeekStart) return; // freshest copy is in memory
+    tallyWeekState(row.state, counts);
+  });
+  tallyWeekState(weekState, counts);
+  popularityCounts = counts;
+}
+function popularityOf(recipe) { return popularityCounts[String(recipe.id)] || 0; }
+function refreshPopularityAndRerender() {
+  refreshPopularity().then(function () {
+    if ($("sortSelect").value === "popularity") renderRecipes();
+  });
+}
+
 function filteredRecipes() {
   var q = $("search").value.trim().toLowerCase();
   var cuisine = $("cuisineFilter").value;
@@ -294,19 +330,22 @@ function filteredRecipes() {
   if (sort === "az") list.sort(function (a, b) { return a.name.localeCompare(b.name); });
   else if (sort === "time") list.sort(function (a, b) { return a.timeMin - b.timeMin || a.name.localeCompare(b.name); });
   else if (sort === "effort") list.sort(function (a, b) { return EFFORT_ORDER[a.effort] - EFFORT_ORDER[b.effort] || a.timeMin - b.timeMin; });
+  else if (sort === "popularity") list.sort(function (a, b) { return popularityOf(b) - popularityOf(a) || a.name.localeCompare(b.name); });
   else list.sort(function (a, b) { return CUISINE_ORDER.indexOf(a.cuisine) - CUISINE_ORDER.indexOf(b.cuisine) || a.name.localeCompare(b.name); });
   return list;
 }
 
 function renderRecipes() {
   var list = filteredRecipes();
+  var sort = $("sortSelect").value;
   var grid = $("recipeGrid");
   $("noResults").style.display = list.length ? "none" : "block";
   grid.innerHTML = list.map(function (r) {
+    var picked = sort === "popularity" ? " · Picked " + popularityOf(r) + (popularityOf(r) === 1 ? " time" : " times") : "";
     return '<div class="card" data-id="' + r.id + '">'
       + '<img src="' + r.img + '" alt="' + esc(r.name) + '" loading="lazy" onerror="imgFallback(this)">'
       + '<div class="card-body"><h3>' + esc(r.name) + '</h3>'
-      + '<div class="meta">' + esc(r.cuisineLabel) + ' · ' + esc(r.timeLabel) + '</div>'
+      + '<div class="meta">' + esc(r.cuisineLabel) + ' · ' + esc(r.timeLabel) + picked + '</div>'
       + '<span class="badge ' + r.effort + '">' + (r.effort === "easy" ? "Easy" : r.effort === "medium" ? "Medium" : "Involved") + '</span>'
       + '</div></div>';
   }).join("");
@@ -351,6 +390,7 @@ function showDayPicker() {
       var r = recipeById(currentRecipeId);
       weekState.assignments[day] = { kind: "recipe", id: currentRecipeId };
       saveWeek();
+      refreshPopularityAndRerender();
       renderPlanner();
       renderGrocery();
       closeRecipe();
@@ -411,6 +451,7 @@ function showMealPicker(day) {
         }
         weekState.assignments[day] = assignment;
         saveWeek();
+        refreshPopularityAndRerender();
         renderPlanner();
         renderGrocery();
         closeMealPicker();
@@ -462,6 +503,7 @@ function renderPlanner() {
       var day = btn.getAttribute("data-clear");
       weekState.assignments[day] = null;
       saveWeek();
+      refreshPopularityAndRerender();
       renderPlanner();
       renderGrocery();
     });
@@ -508,6 +550,7 @@ function randomizeWeek() {
     else weekState.assignments[day] = { kind: "special", special: "eating-out" };
   });
   saveWeek();
+  refreshPopularityAndRerender();
   renderPlanner();
   renderGrocery();
   toast("Week randomized: 5 dinners, leftovers, and a night out");
@@ -930,6 +973,9 @@ function showView(name) {
   });
   document.querySelectorAll(".view").forEach(function (v) { v.classList.remove("active"); });
   $("view-" + name).classList.add("active");
+  /* Opening the Recipes tab on Popularity sort re-counts first, so the
+     order reflects the latest planning from either partner. */
+  if (name === "recipes" && $("sortSelect").value === "popularity") refreshPopularity().then(renderRecipes);
 }
 
 document.querySelectorAll("nav button").forEach(function (b) {
@@ -938,7 +984,11 @@ document.querySelectorAll("nav button").forEach(function (b) {
 $("search").addEventListener("input", renderRecipes);
 $("cuisineFilter").addEventListener("change", renderRecipes);
 $("timeFilter").addEventListener("change", renderRecipes);
-$("sortSelect").addEventListener("change", renderRecipes);
+$("sortSelect").addEventListener("change", function () {
+  /* Picking Popularity re-counts first so the order is current. */
+  if ($("sortSelect").value === "popularity") refreshPopularity().then(renderRecipes);
+  else renderRecipes();
+});
 $("addToWeekBtn").addEventListener("click", showDayPicker);
 $("closeModalBtn").addEventListener("click", closeRecipe);
 $("closeMealPickerBtn").addEventListener("click", closeMealPicker);
@@ -957,7 +1007,9 @@ $("groceryJumpDate").addEventListener("change", function () { jumpToDate(this.va
 $("clearWeekBtn").addEventListener("click", function () {
   takeUndoSnapshot();
   weekState = defaultState();
-  saveWeek(); renderPlanner(); renderGrocery();
+  saveWeek();
+  refreshPopularityAndRerender();
+  renderPlanner(); renderGrocery();
   toast("Week cleared");
 });
 /* Clear just this week's list: uncheck everything and remove items added
@@ -1008,6 +1060,7 @@ $("downloadIcsBtn").addEventListener("click", downloadIcs);
     var custom = await WeekSync.loadCustomRecipes();
     if (custom && custom.length) RECIPES = RECIPES.concat(custom);
   } catch (e) {}
+  await refreshPopularity();
   renderRecipes();
   await renderWeekNav();
   renderUndo();
