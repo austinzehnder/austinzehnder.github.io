@@ -165,6 +165,45 @@ async function switchWeek(weekStart) {
   renderGrocery();
 }
 
+/* One-step undo for the destructive week actions (Randomize, Clear week).
+   The snapshot survives a reload, so an accidental tap can still be undone
+   after closing and reopening the page. */
+var UNDO_KEY = "whats-cookin-undo-v1";
+var undoSnapshot = null;
+try { undoSnapshot = JSON.parse(localStorage.getItem(UNDO_KEY) || "null"); } catch (e) { undoSnapshot = null; }
+function takeUndoSnapshot() {
+  undoSnapshot = { week: currentWeekStart, state: JSON.parse(JSON.stringify(weekState)) };
+  try { localStorage.setItem(UNDO_KEY, JSON.stringify(undoSnapshot)); } catch (e) {}
+  renderUndo();
+}
+function clearUndoSnapshot() {
+  undoSnapshot = null;
+  try { localStorage.removeItem(UNDO_KEY); } catch (e) {}
+  renderUndo();
+}
+function renderUndo() {
+  var b = $("undoBtn");
+  if (b) b.style.display = undoSnapshot ? "" : "none";
+}
+async function undoWeek() {
+  if (!undoSnapshot) return;
+  var snap = undoSnapshot;
+  clearUndoSnapshot();
+  if (snap.week !== currentWeekStart) await switchWeek(snap.week);
+  weekState = JSON.parse(JSON.stringify(snap.state));
+  saveWeek(); renderPlanner(); renderGrocery();
+  toast("Undone — week restored");
+}
+
+/* Jump to any week by picking a calendar date (a real date, not a week
+   number — the old week picker showed a confusing "Week 47, 2026"). */
+function jumpToDate(value) {
+  if (!value) return;
+  var p = value.split("-");
+  var picked = new Date(+p[0], +p[1] - 1, +p[2]); // local date, no UTC shift
+  switchWeek(toISODate(mondayOf(picked)));
+}
+
 async function renderWeekNav() {
   /* "Week of: [Monday date]" on the planner and grocery tabs, kept in step
      with the week being viewed. The line is also the way back: when viewing
@@ -181,6 +220,11 @@ async function renderWeekNav() {
     el.classList.toggle("away", !isCurrent);
     el.disabled = isCurrent;
   });
+  /* Keep the "Jump to a date" pickers showing the viewed week's Monday. */
+  var pj = $("plannerJumpDate");
+  if (pj) pj.value = currentWeekStart;
+  var gj = $("groceryJumpDate");
+  if (gj) gj.value = currentWeekStart;
 }
 
 /* Jump back to the current week from either tab's "Week of:" line. */
@@ -445,6 +489,7 @@ function renderPlanner() {
 }
 
 function randomizeWeek() {
+  takeUndoSnapshot();
   var pool = RECIPES.slice();
   for (var i = pool.length - 1; i > 0; i--) {
     var j = Math.floor(Math.random() * (i + 1));
@@ -906,7 +951,11 @@ $("groceryPrevWeekBtn").addEventListener("click", function () { switchWeek(addDa
 $("groceryNextWeekBtn").addEventListener("click", function () { switchWeek(addDaysISO(currentWeekStart, 7)); });
 $("plannerWeekLabel").addEventListener("click", goToCurrentWeek);
 $("groceryWeekLabel").addEventListener("click", goToCurrentWeek);
+$("undoBtn").addEventListener("click", undoWeek);
+$("plannerJumpDate").addEventListener("change", function () { jumpToDate(this.value); });
+$("groceryJumpDate").addEventListener("change", function () { jumpToDate(this.value); });
 $("clearWeekBtn").addEventListener("click", function () {
+  takeUndoSnapshot();
   weekState = defaultState();
   saveWeek(); renderPlanner(); renderGrocery();
   toast("Week cleared");
@@ -961,6 +1010,7 @@ $("downloadIcsBtn").addEventListener("click", downloadIcs);
   } catch (e) {}
   renderRecipes();
   await renderWeekNav();
+  renderUndo();
   renderPlanner();
   renderGrocery();
 })();

@@ -200,7 +200,9 @@ main h2 { font-size: 20px; letter-spacing: -0.02em; margin: 0 0 8px; }
    next row equally — no ragged wrap. Slimmer than the default buttons. */
 .btn-row.actions-row { gap: 8px; }
 .btn-row.actions-row #randomizeBtn { flex: 1 1 100%; }
-.btn-row.actions-row #copyWeekImageBtn, .btn-row.actions-row #clearWeekBtn { flex: 1 1 0; min-width: 0; }
+.btn-row.actions-row #copyWeekImageBtn, .btn-row.actions-row #clearWeekBtn, .btn-row.actions-row #undoBtn { flex: 1 1 0; min-width: 0; }
+/* "Jump to a date" label on the planner and grocery tabs. */
+.jump-label { color: var(--muted); font-size: 13px; letter-spacing: 0.02em; }
 .btn-row.actions-row .btn { padding: 9px 14px; font-size: 14px; min-height: 40px; }
 /* Grocery list: which week is being viewed, and short action buttons that
    share one row equally. */

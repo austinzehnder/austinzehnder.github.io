@@ -62,10 +62,14 @@
       <button id="nextWeekBtn" class="btn secondary">Next week ▶</button>
     </div>
     <button type="button" class="week-of-label" id="plannerWeekLabel"></button>
+    <div class="btn-row">
+      <label class="jump-label">Jump to a date: <input type="date" id="plannerJumpDate"></label>
+    </div>
     <div class="btn-row actions-row">
       <button id="randomizeBtn" class="btn">🎲 Randomize week</button>
       <button id="copyWeekImageBtn" class="btn secondary">📋 Copy week image</button>
       <button id="clearWeekBtn" class="btn secondary">Clear week</button>
+      <button id="undoBtn" class="btn secondary" style="display:none">↩ Undo</button>
     </div>
     <p class="empty-state" id="plannerHint">Tap a recipe, then "Add to week" — or randomize for 5 dinners, 1 leftovers night, and 1 night out.</p>
     <div id="plannerGrid" class="planner-grid"></div>
@@ -78,6 +82,9 @@
       <button id="groceryNextWeekBtn" class="btn secondary">Next week ▶</button>
     </div>
     <button type="button" class="week-of-label" id="groceryWeekLabel"></button>
+    <div class="btn-row">
+      <label class="jump-label">Jump to a date: <input type="date" id="groceryJumpDate"></label>
+    </div>
     <div class="btn-row grocery-actions">
       <button id="copyListBtn" class="btn">copy</button>
       <button id="shareNotesBtn" class="btn secondary">share</button>
