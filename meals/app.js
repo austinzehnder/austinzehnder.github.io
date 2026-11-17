@@ -70,7 +70,7 @@ var RECIPES = [
   ingredients: ["1 lb Impossible ground beef (or 4 preformed patties)", "4 brioche buns, 4 slices cheddar", "1 avocado, sliced", "2 russets, cut in wedges; olive oil, salt", "Toppings: keep it to avocado, pickles, ketchup, mustard, mayo"],
   steps: ["Heat oven to 425°F. Toss wedges with oil and salt; roast 30 minutes, flipping once.", "Divide Impossible into 4 loose balls. Heat a cast-iron skillet ripping hot; smash each ball flat with a spatula and hold 10 seconds. Season, cook 2 minutes, flip, top with cheddar, 1 more minute.", "Toast buns in the burger fat. Assemble: sauce, patty, avocado, pickles."] },
 { id: 23, name: "Steak Frites Night", cuisine: "American", cuisineLabel: "French-American", timeMin: 45, timeLabel: "45 min", effort: "medium", img: "assets/steak-frites.jpg",
-  ingredients: ["2 steaks (ribeye or NY strip, about 10 oz each), room temperature", "2 russets, cut in fries, soaked 20 min in cold water and patted dry", "Aioli: 1/3 cup mayo, 1 clove garlic (grated), squeeze of lemon, salt", "Hers: 2 Impossible burger patties as her \"steak\"", "Side: steamed broccoli"],
+  ingredients: ["2 steaks (ribeye or NY strip, about 10 oz each), room temperature", "2 russets, cut in fries, soaked 20 min in cold water and patted dry", "Aioli: 1/3 cup mayo, 1 clove garlic (grated), squeeze of lemon, salt", "Hers: 2 Impossible burger patties as her \"steak\"", "1 cup steamed broccoli, as a side"],
   steps: ["Heat oven to 425°F. Toss fries with oil and salt; roast 35 minutes, flipping once, until crisp.", "Stir aioli ingredients together; chill.", "Sear steaks in a ripping-hot oiled skillet 3–4 minutes per side for medium-rare; rest 5 minutes. (Her patties: 3 minutes per side.)", "Slice steak against the grain. Plate with fries, broccoli, and aioli for dipping."] },
 { id: 24, name: "Impossible Shepherd's Pie", cuisine: "American", cuisineLabel: "American", timeMin: 55, timeLabel: "55 min, mostly hands-off", effort: "involved", img: "assets/shepherds-pie.jpg",
   ingredients: ["1 lb Impossible ground beef", "1 cup corn kernels, 1 cup green beans (cut in 1-inch pieces)", "2 cloves garlic, minced; 1 tsp dried thyme", "1 tbsp soy sauce, 1/2 cup vegetable broth + 1 tsp cornstarch", "2 lbs russet potatoes, peeled and quartered", "3 tbsp butter, 1/3 cup milk, salt and pepper", "1/2 cup shredded cheddar"],
@@ -665,7 +665,7 @@ function combinedGrocery() {
   return order.map(function (key) {
     var g = groups[key];
     /* Amounts first with the item name ("5 cups broccoli florets"), then
-       any amount-less notes ("+ Side: steamed broccoli") — the name
+       any amount-less notes ("+ Salt, pepper") — the name
        belongs with its amounts, not tacked on after a note. Identical
        notes show once. */
     var amountParts = g.amounts.filter(function (a) { return a.value !== null; })
