@@ -594,13 +594,77 @@ function formatAmount(n) {
 
 /* Split a recipe ingredient line into shoppable pieces, e.g.
    "3 tbsp butter, 2 cloves garlic (sliced), 1 lemon" -> 3 pieces. */
+/* A comma-separated segment is a standalone item when it is short, has
+   no amount of its own, and isn't a prep phrase ("minced", "to finish",
+   "butter or oil", "cut in fries"). */
+var PREP_WORDS = ["minced", "diced", "sliced", "chopped", "grated", "shredded", "crumbled", "beaten", "halved", "cubed", "pressed", "soaked", "divided", "thinly", "finely", "loosely", "smashed", "quartered", "peeled", "cut", "small", "large", "trimmed", "torn"];
+var NONFOOD_WORDS = ["half-moons", "half-moon", "wedges", "cubes", "dice", "pieces", "strips", "rings", "slices", "chunks", "florets", "in", "the", "a", "an", "of", "to", "for", "and", "or", "more", "room", "temperature", "plus", "serve", "taste"];
+function looksLikeItem(seg) {
+  var s = seg.trim().toLowerCase();
+  if (!s) return false;
+  var words = s.split(/\s+/);
+  if (words.length > 4) return false;
+  if (/\d/.test(s)) return false;
+  if (/[()]/.test(s)) return false;
+  if (/\bor\b/.test(s)) return false;
+  if (/^(to|for|as|with|and|plus)\b/.test(s)) return false;
+  if (/\b(to finish|to serve|to taste|room temperature|for serving|for the table|plus more|for frying|for dipping)\b/.test(s)) return false;
+  if (PREP_WORDS.indexOf(words[0]) !== -1) return false;
+  if (PREP_WORDS.indexOf(s) !== -1) return false;
+  if (words.every(function (w) { return PREP_WORDS.indexOf(w) !== -1 || NONFOOD_WORDS.indexOf(w.replace(/[^a-z-]/g, "")) !== -1; })) return false;
+  return true;
+}
+
+/* First comma at paren depth 0 — commas inside "(...)" belong to the
+   parenthetical ("2 Italian pork sausages (hers: 2 Impossible sausages,
+   or skip)"), not to the item list. */
+function firstCommaOutsideParens(s) {
+  var depth = 0;
+  for (var i = 0; i < s.length; i++) {
+    if (s[i] === "(") depth++;
+    else if (s[i] === ")") depth--;
+    else if (s[i] === "," && depth === 0) return i;
+  }
+  return -1;
+}
+
 function splitLine(line) {
   var parts = line.split(/,\s*(?=\d)/);
   var out = [];
   parts.forEach(function (p) {
     p.split(/\s*\+\s*/).forEach(function (q) {
       q = q.trim();
-      if (q) out.push(q);
+      if (!q) return;
+      if (parseAmount(q) === null) {
+        /* An amount-less line that just lists items ("Cilantro, sour cream,
+           lime wedges") splits into one piece per item — but only when every
+           segment looks like an item, so prep notes and serving suggestions
+           stay whole. */
+        if (q.indexOf(",") !== -1) {
+          var segs = q.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+          if (segs.length > 1 && segs.every(looksLikeItem)) {
+            segs.forEach(function (s) { out.push(s); });
+            return;
+          }
+        }
+        out.push(q);
+        return;
+      }
+      /* A line with an amount keeps its first comma-segment as the item;
+         later segments that look like items are rescued instead of dropped
+         ("1 tsp sugar, salt" -> sugar + salt; "1 tsp salt, black pepper"
+         -> salt + pepper), while prep notes ("minced", "room temperature")
+         still fall away. The split is at the first comma outside any
+         parentheses, so "(hers: 2 Impossible sausages, or skip)" stays
+         part of the main item. */
+      var firstComma = firstCommaOutsideParens(q);
+      if (firstComma === -1) { out.push(q); return; }
+      out.push(q.slice(0, firstComma).trim());
+      q.slice(firstComma + 1).split(/[,;]/).forEach(function (t) {
+        t = t.trim();
+        if (!t) return;
+        if (parseAmount(t) !== null || looksLikeItem(t)) out.push(t);
+      });
     });
   });
   return out;
@@ -621,7 +685,7 @@ function pluralUnit(unit, value) {
    instead of splitting into "broccoli florets" / "small broccoli florets" /
    "side: steamed broccoli". "crushed" is deliberately NOT stripped: crushed
    vs diced vs whole tomatoes are different cans. */
-var NORM_ADJ = ["small", "large", "medium", "baby", "fresh", "dried", "ground", "grated", "finely", "shredded", "chopped", "diced", "minced", "sliced", "steamed", "roasted", "day-old", "cooked", "jasmine", "russet", "heavy", "sharp", "crumbled"];
+var NORM_ADJ = ["small", "large", "medium", "baby", "fresh", "dried", "ground", "grated", "finely", "shredded", "chopped", "diced", "minced", "sliced", "steamed", "roasted", "day-old", "cooked", "jasmine", "russet", "heavy", "sharp", "crumbled", "black", "charred"];
 function normKey(item) {
   var s = item.replace(/^side:\s*/, "");
   var words = s.split(" ");
@@ -644,6 +708,7 @@ function parsePiece(piece) {
   if (UNIT_SINGULAR[unit]) unit = UNIT_SINGULAR[unit];
   var item = rest.replace(/\([^)]*\)/g, "").replace(/[()]/g, "").replace(/,.*$/, "").trim().toLowerCase().replace(/\s+/g, " ");
   if (!item) item = piece.toLowerCase();
+  item = item.replace(/^(pinch|squeeze) of\s+/, "");
   return { amount: amount, unit: unit, item: normKey(item), display: item, raw: piece.replace(/[()]/g, "") };
 }
 
@@ -676,13 +741,23 @@ function combinedGrocery() {
        notes show once. */
     var amountParts = g.amounts.filter(function (a) { return a.value !== null; })
       .map(function (a) { return formatAmount(a.value) + (a.unit ? " " + pluralUnit(a.unit, a.value) : ""); });
-    var rawParts = [];
-    g.amounts.forEach(function (a) {
-      if (a.value === null && rawParts.indexOf(a.raw) === -1) rawParts.push(a.raw);
-    });
     /* Prefer a plain name for the label ("rice") over a stateful one
        ("day-old cooked rice") when the same item was written both ways. */
     var display = g.displays.filter(function (d) { return NORM_ADJ.indexOf(d.split(" ")[0]) === -1; })[0] || g.displays[0];
+    var rawParts = [];
+    g.amounts.forEach(function (a) {
+      if (a.value !== null) return;
+      if (rawParts.some(function (r) { return r.toLowerCase() === a.raw.toLowerCase(); })) return;
+      rawParts.push(a.raw);
+    });
+    /* Drop notes that only restate the item ("black pepper" in the pepper
+       group, "Salt" next to "1 tsp salt") — but never drop the last note,
+       or a bare item would lose its label entirely. */
+    var informative = rawParts.filter(function (r) {
+      return normKey(r.toLowerCase().replace(/,.*$/, "").trim()) !== key;
+    });
+    if (amountParts.length || informative.length) rawParts = informative;
+    else if (rawParts.length) rawParts = [rawParts[0]];
     var text = amountParts.join(" + ");
     if (amountParts.length) text += " " + display;
     if (rawParts.length) text += (text ? " + " : "") + rawParts.join(" + ");
