@@ -413,7 +413,9 @@ function showMealPicker(day) {
   search.value = "";
   var renderList = function () {
     var q = search.value.trim().toLowerCase();
-    var sorted = RECIPES.slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+    /* Default order is popularity (most-planned first, ties A–Z) — the
+       same order as the Recipes tab's Popularity sort. */
+    var sorted = RECIPES.slice().sort(function (a, b) { return popularityOf(b) - popularityOf(a) || a.name.localeCompare(b.name); });
     var list = sorted.filter(function (r) {
       if (!q) return true;
       if (r.name.toLowerCase().indexOf(q) !== -1) return true;
@@ -421,23 +423,27 @@ function showMealPicker(day) {
     });
     /* Name matches always rank first, so the dish you're typing stays on
        top even when a 3+ letter query also matches an ingredient (e.g.
-       "sal" matching salt in other recipes). */
+       "sal" matching salt in other recipes). Within each group the
+       order stays popularity, not A–Z. */
     if (q) {
       list.sort(function (a, b) {
         var am = a.name.toLowerCase().indexOf(q) !== -1;
         var bm = b.name.toLowerCase().indexOf(q) !== -1;
         if (am !== bm) return am ? -1 : 1;
-        return a.name.localeCompare(b.name);
+        return popularityOf(b) - popularityOf(a) || a.name.localeCompare(b.name);
       });
     }
-    var rows = list.map(function (r) {
-      return '<button data-recipe="' + r.id + '"><img src="' + r.img + '" alt="" onerror="this.style.display=\'none\'">'
-        + '<span>' + esc(r.name) + '<br><small>' + esc(r.cuisineLabel) + ' · ' + esc(r.timeLabel) + '</small></span></button>';
-    }).join("");
+    /* Eating Out and Leftovers sit at the top, ahead of the recipes. */
+    var rows = '<button data-special="eating-out"><img src="' + SPECIALS["eating-out"].img + '" alt="" onerror="this.style.display=\'none\'">'
+      + '<span>Eating Out<br><small>Night out</small></span></button>';
     rows += '<button data-special="leftovers"><img src="' + SPECIALS.leftovers.img + '" alt="" onerror="this.style.display=\'none\'">'
       + '<span>Leftovers<br><small>Night off cooking</small></span></button>';
-    rows += '<button data-special="eating-out"><img src="' + SPECIALS["eating-out"].img + '" alt="" onerror="this.style.display=\'none\'">'
-      + '<span>Eating Out<br><small>Night out</small></span></button>';
+    rows += list.map(function (r) {
+      var picked = popularityOf(r);
+      var count = picked ? " · Picked " + picked + (picked === 1 ? " time" : " times") : "";
+      return '<button data-recipe="' + r.id + '"><img src="' + r.img + '" alt="" onerror="this.style.display=\'none\'">'
+        + '<span>' + esc(r.name) + '<br><small>' + esc(r.cuisineLabel) + ' · ' + esc(r.timeLabel) + count + '</small></span></button>';
+    }).join("");
     $("mealPickerList").innerHTML = rows;
     $("mealPickerList").querySelectorAll("button").forEach(function (btn) {
       btn.addEventListener("click", function () {
