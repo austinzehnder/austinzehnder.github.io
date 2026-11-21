@@ -6,6 +6,13 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Guitar Tabs — Austin Zehnder</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b0b0e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Guitar Tabs">
 </head>
 <body>
 <header>
@@ -30,8 +37,13 @@
       <input id="search" type="search" placeholder="Search by song title or artist…" autocomplete="off" autocapitalize="off">
       <span id="count" class="count"></span>
     </div>
-    <div id="songList" class="list"></div>
-    <p id="noResults" class="empty-state" style="display:none">No songs match that search.</p>
+    <div class="catalogue-wrap">
+      <div id="alphaIndex" class="alpha-index" aria-label="Jump to letter"></div>
+      <div class="list-wrap">
+        <div id="songList" class="list"></div>
+        <p id="noResults" class="empty-state" style="display:none">No songs match that search.</p>
+      </div>
+    </div>
   </section>
 
   <!-- SONG -->

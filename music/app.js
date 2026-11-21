@@ -162,6 +162,41 @@
     document.querySelectorAll('.song-row').forEach(function (btn) {
       btn.addEventListener('click', function () { openSong(btn.getAttribute('data-id')); });
     });
+    renderAlphaIndex(list);
+  }
+  /* A–Z jump index down the left of the catalogue. Letters with no songs in
+   * the current (possibly searched) list are greyed out. */
+  function firstLetter(title) {
+    var m = (title || '').toUpperCase().match(/[A-Z]/);
+    return m ? m[0] : '#';
+  }
+  function renderAlphaIndex(list) {
+    var firstRow = {};
+    document.querySelectorAll('.song-row').forEach(function (btn) {
+      var t = btn.querySelector('b');
+      var L = firstLetter(t ? t.textContent : '');
+      if (!firstRow[L]) firstRow[L] = btn;
+    });
+    var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#'.split('');
+    $('alphaIndex').innerHTML = letters.map(function (L) {
+      return '<button type="button" data-letter="' + L + '"' + (firstRow[L] ? '' : ' disabled') + '>' + L + '</button>';
+    }).join('');
+    $('alphaIndex').querySelectorAll('[data-letter]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var row = firstRow[b.getAttribute('data-letter')];
+        if (!row) return;
+        row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        row.classList.add('flash');
+        setTimeout(function () { row.classList.remove('flash'); }, 1200);
+      });
+    });
+  }
+  /* Jump from a song / perform mode to that artist's songs in the catalogue. */
+  function openArtistCatalogue(artist) {
+    if (!$('perform').hidden) stopPerform();
+    $('search').value = artist;
+    showView('catalogue');
+    window.scrollTo(0, 0);
   }
 
   /* ---------- song view ---------- */
@@ -176,9 +211,10 @@
     if (s.chords && s.chords.length) chips.push('Chords: ' + esc(s.chords.join(', ')));
     if (s.source) chips.push(esc(s.source));
     $('songDetail').innerHTML =
-      '<div class="song-head"><h2>' + esc(s.title) + '</h2><p>' + esc(s.artist) + '</p></div>' +
+      '<div class="song-head"><h2>' + esc(s.title) + '</h2><p><button id="songArtistBtn" class="artist-link" type="button" title="Show all songs by ' + esc(s.artist) + '">' + esc(s.artist) + '</button></p></div>' +
       '<div class="meta-row">' + capo + chips.map(function (c) { return '<span class="chip">' + c + '</span>'; }).join('') + '</div>' +
       '<div class="chart"><pre id="songPre"></pre></div><div class="pager" id="songPager"></div>';
+    $('songArtistBtn').addEventListener('click', function () { openArtistCatalogue(s.artist); });
     var sel = $('addToSetSelect');
     sel.innerHTML = setlists.map(function (set) { return '<option value="' + esc(set.id) + '">' + esc(set.name) + '</option>'; }).join('') ||
       '<option value="">(no set list yet — create one first)</option>';
@@ -281,8 +317,11 @@
     var p = performPages[performPageIdx];
     $('performProgress').textContent = 'Song ' + (performIdx + 1) + ' of ' + performIds.length +
       (performPages.length > 1 ? ' · Page ' + (performPageIdx + 1) + ' of ' + performPages.length : '');
-    $('performTitle').textContent = s.title + ' — ' + s.artist + (s.capo ? '  ·  Capo ' + s.capo : '') +
-      ((s.tuning && s.tuning !== 'Standard') ? '  ·  ' + s.tuning : '');
+    $('performTitle').innerHTML = esc(s.title) + ' — ' +
+      '<button id="performArtistBtn" class="artist-link" type="button" title="Show all songs by ' + esc(s.artist) + '">' + esc(s.artist) + '</button>' +
+      (s.capo ? '  ·  Capo ' + esc(s.capo) : '') +
+      ((s.tuning && s.tuning !== 'Standard') ? '  ·  ' + esc(s.tuning) : '');
+    $('performArtistBtn').addEventListener('click', function () { openArtistCatalogue(s.artist); });
     bodyEl.innerHTML = '<pre>' + esc(lines.slice(p.start, p.end).join('\n')) + '</pre>';
     bodyEl.scrollTop = 0;
     $('prevBtn').disabled = performIdx === 0 && performPageIdx === 0;

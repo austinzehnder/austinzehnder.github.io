@@ -1,6 +1,8 @@
 # Guitar Tabs — private music section (LIVE at austinzehnder.com/music/)
 
-Status 2026-11-06: pushed live as commit 910d0c9, verified live 13:37 PST — page loads, "185 of 185 songs", search works (e.g. Zach Bryan → 14 songs), robots.txt disallows /music/, /real-estate/ correctly 404s (held locally). Music-only push: the Real Estate commit was held on local branch `real-estate-hold`, then cherry-picked back as 164871c — local main is 1 commit ahead of origin/main, Real Estate still unpushed.
+Status 2026-11-21: 282-song catalogue is LIVE (commit b554ad8 — full catalogue, tap-to-turn pages, tuning display). Local main == origin/main; nothing held.
+New 2026-11-21 (built + tested locally, NOT yet pushed): Home Screen icon (flat dark guitar on amber, same style as the meals cloche — `assets/icon-512.png`, `icon-192.png`, `apple-touch-icon.png`, `favicon.png`, generator `assets/make_icon.py`, plus `manifest.webmanifest` and standalone metas so it opens like an app); A–Z jump index down the left of the catalogue (letters with no songs in the current list are greyed out; tapping one scrolls to the first song under it and flashes it); artist name is now a link in perform mode AND on the song page — tapping it exits to the catalogue filtered to that artist's songs.
+Austin confirmed 2026-11-06 he will add new tabs by pasting UG links in chat (no link field on the Add Song form).
 Chunks received from Austin (upload, 3 parts): chunk 1 = 49 songs (9.9 MB),
 chunk 2 = 71 songs (14 MB), chunk 3 = 65 songs (14 MB). Total unique 185,
 no duplicates, all .docx, no Set List folder included. Browser Drive download
@@ -11,7 +13,7 @@ Importer: import/import_docx.py (paragraph-preserving, apostrophes restored
 from filename underscores, capo extracted, chords collected). 56 songs have a
 capo, 0 empty bodies. Dylan docx matches the example PDF (Capo IV).
 Still pending: create the two Supabase tables below. Rocket Man: Austin chose the My Morning Jacket version.
-UG pull COMPLETE 2026-11-06 ~14:26 PST: all 97 new songs pulled in 10 valid batches (1-3, 5-11), catalogue 282 locally (185 Drive + 97 UG), 0 empty, NOT yet pushed live (live still shows 185). Batch 4 was sent with a WRONG list (songs not in Austin's favorites) — 6 were pulled but NOT imported; see import/ug-batch4-NOT-FAVORITES.txt. Box Of Rain (urls line 11) was skipped by batch 2 and led the corrected batch 5. Batch order followed ultimate-guitar-urls.txt lines: 1 = 1-10, 2 = 12-21, 3 = 22-31, 5 = Box Of Rain + 32-40, 6 = 41-50, 7 = 51-60, 8 = 61-70, 9 = 71-80, 10 = 81-90, 11 = 91-97. UG browser session closed after batch 11.
+UG pull COMPLETE 2026-11-06 ~14:26 PST: all 97 new songs pulled in 10 valid batches (1-3, 5-11), catalogue 282 locally (185 Drive + 97 UG), 0 empty, pushed live as b554ad8. Batch 4 was sent with a WRONG list (songs not in Austin's favorites) — 6 were pulled but NOT imported; see import/ug-batch4-NOT-FAVORITES.txt. Box Of Rain (urls line 11) was skipped by batch 2 and led the corrected batch 5. Batch order followed ultimate-guitar-urls.txt lines: 1 = 1-10, 2 = 12-21, 3 = 22-31, 5 = Box Of Rain + 32-40, 6 = 41-50, 7 = 51-60, 8 = 61-70, 9 = 71-80, 10 = 81-90, 11 = 91-97. UG browser session closed after batch 11.
 Fit to page (2026-11-06): opening a song shrinks the chart to fit the screen;
 longer songs split into pages with Prev/Next (chord lines never split from
 their lyric line). Same paging in Perform mode; Next advances pages, then songs.
@@ -28,13 +30,14 @@ from the homepage, NOT in sitemap.xml.
   perform mode (Prev/Next, Song X of Y, keyboard ←/→, Esc to exit, tap/click left half = back a page, right half = next page), font size,
   auto-scroll, add-song form
 - `sync.js` — localStorage mirror + Supabase shared backend (same pattern as meals)
-- `songs.json` — seed catalogue. Currently 1 song:
-  - Bob Dylan — Don't Think Twice, It's All Right — Capo IV, Key C,
-    chords C G Am F D7 G7 C7. Reconstructed from the example PDF Austin sent
-    2026-11-06. Chords sit on their own line above the lyric line, monospace.
+- `songs.json` — seed catalogue. 282 songs (185 Drive + 97 UG).
+- `assets/` — Home Screen icon set (guitar, flat dark on amber #e8b04b): `icon-512.png`, `icon-192.png`, `apple-touch-icon.png` (180), `favicon.png` (32); `make_icon.py` regenerates them
+- `manifest.webmanifest` — standalone web-app manifest (name "Guitar Tabs")
 
 ## Features (all confirmed by Austin 2026-11-06)
 - Catalogue search filters on every keystroke, by title or artist
+- A–Z jump index down the left of the catalogue; tapping a letter scrolls to the first song under it (letters with no songs in the current list are greyed out)
+- Artist name is a link in perform mode and on the song page — tapping it shows that artist's songs in the catalogue
 - Click a song to view its chart; capo shown as a prominent badge
 - Set lists: create named lists, add songs (from song page or set-list page),
   reorder ↑/↓, remove, delete list, perform a whole set
