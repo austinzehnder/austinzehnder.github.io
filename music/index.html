@@ -34,7 +34,10 @@
   <!-- CATALOGUE -->
   <section id="view-catalogue" class="view active">
     <div class="filters">
-      <input id="search" type="search" placeholder="Search by song title or artist…" autocomplete="off" autocapitalize="off">
+      <div class="search-wrap">
+        <input id="search" type="search" placeholder="Search by song title or artist…" autocomplete="off" autocapitalize="off">
+        <button id="clearSearchBtn" class="clear-btn" type="button" title="Clear search" aria-label="Clear search" hidden>✕</button>
+      </div>
       <span id="count" class="count"></span>
     </div>
     <div class="catalogue-wrap">

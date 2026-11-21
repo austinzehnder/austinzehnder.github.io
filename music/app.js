@@ -144,8 +144,10 @@
   }
 
   /* ---------- catalogue ---------- */
+  function updateClearBtn() { $('clearSearchBtn').hidden = !($('search').value || '').trim(); }
   function renderCatalogue() {
     var q = ($('search').value || '').trim().toLowerCase();
+    updateClearBtn();
     var list = songs.filter(function (s) {
       if (!q) return true;
       return (s.title + ' ' + s.artist).toLowerCase().indexOf(q) !== -1;
@@ -355,6 +357,11 @@
     b.addEventListener('click', function () { showView(b.getAttribute('data-view')); });
   });
   $('search').addEventListener('input', renderCatalogue);
+  $('clearSearchBtn').addEventListener('click', function () {
+    $('search').value = '';
+    renderCatalogue();
+    $('search').focus();
+  });
   $('backBtn').addEventListener('click', function () { showView('catalogue'); });
   $('themeBtn').addEventListener('click', setTheme);
   $('performThemeBtn').addEventListener('click', setTheme);

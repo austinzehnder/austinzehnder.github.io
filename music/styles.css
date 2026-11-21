@@ -21,7 +21,10 @@ main { max-width: 960px; margin: 0 auto; padding: 20px; }
 .view { display: none; }
 .view.active { display: block; }
 .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; align-items: center; }
-.filters input { background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; font-size: 16px; flex: 1 1 260px; }
+.search-wrap { position: relative; flex: 1 1 260px; display: flex; }
+.search-wrap input { background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 11px 38px 11px 12px; font-size: 16px; flex: 1; min-width: 0; }
+.clear-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: var(--card2); color: var(--muted); border: none; border-radius: 999px; width: 26px; height: 26px; font-size: 13px; line-height: 1; cursor: pointer; padding: 0; }
+.clear-btn:hover { color: var(--text); }
 .count { color: var(--muted); font-size: 14px; }
 .catalogue-wrap { display: flex; gap: 8px; align-items: flex-start; }
 .list-wrap { flex: 1; min-width: 0; }

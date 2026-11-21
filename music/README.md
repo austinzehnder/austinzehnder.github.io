@@ -1,7 +1,8 @@
 # Guitar Tabs — private music section (LIVE at austinzehnder.com/music/)
 
 Status 2026-11-21: 282-song catalogue is LIVE (commit b554ad8 — full catalogue, tap-to-turn pages, tuning display). Local main == origin/main; nothing held.
-New 2026-11-21 (built + tested locally, NOT yet pushed): Home Screen icon (flat dark guitar on amber, same style as the meals cloche — `assets/icon-512.png`, `icon-192.png`, `apple-touch-icon.png`, `favicon.png`, generator `assets/make_icon.py`, plus `manifest.webmanifest` and standalone metas so it opens like an app); A–Z jump index down the left of the catalogue (letters with no songs in the current list are greyed out; tapping one scrolls to the first song under it and flashes it); artist name is now a link in perform mode AND on the song page — tapping it exits to the catalogue filtered to that artist's songs.
+Nov 21 updates PUSHED LIVE as 8d61130 and verified live in a fresh browser: Home Screen icon (flat dark guitar on amber, same style as the meals cloche — `assets/icon-512.png`, `icon-192.png`, `apple-touch-icon.png`, `favicon.png`, generator `assets/make_icon.py`, plus `manifest.webmanifest` and standalone metas so it opens like an app); A–Z jump index down the left of the catalogue (letters with no songs in the current list are greyed out; tapping one scrolls to the first song under it and flashes it); artist name is now a link in perform mode AND on the song page — tapping it exits to the catalogue filtered to that artist's songs. Note: the first two live checks right after the push failed because the test browser was serving a cached pre-push script; a fresh profile confirmed all features working. Lesson: after a push, verify in a fresh browser profile (or wait out the 10-min CDN cache) before concluding a feature is broken.
+Search clear button (2026-11-21, built + tested locally, NOT yet pushed): an ✕ inside the right end of the search box, visible only when there is text to clear; tapping it empties the search, restores the full catalogue, and keeps the keyboard up. It also appears when the search was filled by tapping an artist name.
 Austin confirmed 2026-11-06 he will add new tabs by pasting UG links in chat (no link field on the Add Song form).
 Chunks received from Austin (upload, 3 parts): chunk 1 = 49 songs (9.9 MB),
 chunk 2 = 71 songs (14 MB), chunk 3 = 65 songs (14 MB). Total unique 185,
@@ -37,6 +38,7 @@ from the homepage, NOT in sitemap.xml.
 ## Features (all confirmed by Austin 2026-11-06)
 - Catalogue search filters on every keystroke, by title or artist
 - A–Z jump index down the left of the catalogue; tapping a letter scrolls to the first song under it (letters with no songs in the current list are greyed out)
+- Search box has a ✕ clear button (visible only when there is text); tapping it empties the search and restores the full catalogue
 - Artist name is a link in perform mode and on the song page — tapping it shows that artist's songs in the catalogue
 - Click a song to view its chart; capo shown as a prominent badge
 - Set lists: create named lists, add songs (from song page or set-list page),
