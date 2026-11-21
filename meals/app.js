@@ -1308,6 +1308,14 @@ $("downloadIcsBtn").addEventListener("click", downloadIcs);
 
 (async function () {
   renderSkeletons(); // the page starts empty — hold its shape while loading
+  /* Recipe cards too: the grid sits empty until the recipes and the
+     popularity counts finish loading, so hold 8 card shapes meanwhile. */
+  var rg = $("recipeGrid");
+  if (rg) {
+    rg.innerHTML = Array(8).fill('<div class="card skeleton"><div class="sk-img"></div>'
+      + '<div class="card-body"><div class="sk-line"></div>'
+      + '<div class="sk-line short"></div></div></div>').join("");
+  }
   await loadWeek();
   try {
     var custom = await WeekSync.loadCustomRecipes();

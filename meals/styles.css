@@ -329,13 +329,14 @@ button.btn.danger:hover { background: rgba(217, 123, 108, 0.08); filter: none; }
    the day cards and grocery lines, gently pulsing, instead of a blank
    page or a stale dinner. */
 .day-card.skeleton .sk-img { height: 140px; background: var(--card2); }
+.card.skeleton .sk-img { height: 160px; background: var(--card2); }
 .sk-line { height: 14px; border-radius: 7px; background: var(--card2); margin: 10px 16px 0; }
-.day-body .sk-line { margin-left: 0; margin-right: 0; }
+.day-body .sk-line, .card-body .sk-line { margin-left: 0; margin-right: 0; }
 #groceryCombined .sk-line { height: 46px; margin: 0 0 8px; }
 .sk-line.short { width: 55%; }
 .sk-line.btn { height: 40px; width: 45%; }
 @media (prefers-reduced-motion: no-preference) {
-  .day-card.skeleton .sk-img, .sk-line { animation: shimmer 1.2s ease-in-out infinite; }
+  .sk-img, .sk-line { animation: shimmer 1.2s ease-in-out infinite; }
   @keyframes shimmer { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
 }
 
